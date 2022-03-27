@@ -5,7 +5,6 @@ from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
 
-
 def ensure_dir(dirname):
     dirname = Path(dirname)
     if not dirname.is_dir():
