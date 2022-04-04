@@ -37,6 +37,12 @@ PyTorch deep learning project made easy.
 * PyTorch >= 0.4 (1.2 recommended)
 * tqdm (Optional for `test.py`)
 * tensorboard >= 1.14 (see [Tensorboard Visualization](#tensorboard-visualization))
+* transformers~=4.16.2
+* seaborn~=0.11.2
+* matplotlib~=3.4.3
+* pandas~=1.3.4
+* scikit-learn~=0.24.2
+* pillow~=8.4.0
 
 ## Features
 * Clear folder structure which is suitable for many deep learning projects.
@@ -54,6 +60,7 @@ PyTorch deep learning project made easy.
   │
   ├── train.py - main script to start training
   ├── test.py - evaluation of trained model
+  ├── temp.py - testing new code
   │
   ├── config.json - holds configuration for training
   ├── parse_config.py - class to handle config file and cli options
@@ -89,7 +96,9 @@ PyTorch deep learning project made easy.
   │  
   └── utils/ - small utility functions
       ├── util.py
-      └── ...
+      ├── NLP.py
+      └── data.py
+      ...
   ```
 
 ## Usage
@@ -139,6 +148,7 @@ Config files are in `.json` format:
     }
   },
   "trainer": {
+    "type": "ImageTrainer",
     "epochs": 100,                     // number of training epochs
     "save_dir": "saved/",              // checkpoints are saved in save_dir/models/name
     "save_freq": 1,                    // save checkpoints every save_freq epochs
@@ -152,7 +162,7 @@ Config files are in `.json` format:
 }
 ```
 
-Add addional configurations if you need.
+Add additional configurations if you need.
 
 ### Using config files
 Modify the configurations in `.json` config files, then run:
