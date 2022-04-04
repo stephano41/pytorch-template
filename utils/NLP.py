@@ -3,16 +3,12 @@ import io
 import unicodedata
 import torch
 import string
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix
 import seaborn as sn
 import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 import glob
 import os
-from torchvision.io import decode_png
 from PIL import Image
-import torchvision.transforms as transforms
 from torchvision.transforms import ToTensor
 
 def findFiles(path): return glob.glob(path)
@@ -116,3 +112,19 @@ def plot_to_image(figure):
     image = Image.open(buf)
     image = ToTensor()(image)
     return image
+
+
+def predict(line, model, all_categories, n_predictions=3):
+    line = torch.unsqueeze(lineToTensor(line), 0)
+    output = model(line)
+
+    topv, topi = output.data.topk(n_predictions, 1, True)
+    predictions = []
+
+    for i in range(n_predictions):
+        value = topv[0][i]
+        category_index = topi[0][i]
+        print('(%.2f) %s' % (value, all_categories[category_index]))
+        predictions.append([value, all_categories[category_index]])
+
+    return predictions
