@@ -7,9 +7,14 @@ import model.metric as module_metric
 import model.model as module_arch
 from parse_config import ConfigParser
 
+from utils.NLP import classes, createConfusionMatrix
+import matplotlib.pyplot as plt
+
 
 def main(config):
     logger = config.get_logger('test')
+
+    data_dir = config['data_loader']['args']['data_dir']
 
     # setup data_loader instances
     data_loader = getattr(module_data, config['data_loader']['type'])(
@@ -45,10 +50,14 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
 
     with torch.no_grad():
+        all_outputs = []
+        all_by = []
         for i, (data, target) in enumerate(tqdm(data_loader)):
             data, target = data.to(device), target.to(device)
             output = model(data)
-
+            _, preds = torch.max(output, dim=1)
+            all_outputs.extend(preds.data.cpu().numpy())
+            all_by.extend(target.data.cpu().numpy())
             #
             # save sample images, or do something with output here
             #
@@ -66,13 +75,17 @@ def main(config):
         met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
     })
     logger.info(log)
+    createConfusionMatrix(all_by, all_outputs, classes(data_dir))
+    plt.show()
 
 
 if __name__ == '__main__':
+    checkpointPath = "saved/models/LSTM-2-layers/0327_190824/"
+
     args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config', default=None, type=str,
+    args.add_argument('-c', '--config', default=checkpointPath + "config.json", type=str,
                       help='config file path (default: None)')
-    args.add_argument('-r', '--resume', default=None, type=str,
+    args.add_argument('-r', '--resume', default=checkpointPath + "model_best.pth", type=str,
                       help='path to latest checkpoint (default: None)')
     args.add_argument('-d', '--device', default=None, type=str,
                       help='indices of GPUs to enable (default: all)')
