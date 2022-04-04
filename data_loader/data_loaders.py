@@ -10,6 +10,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import TensorDataset
 from torchvision import datasets, transforms
 
+from transformers import BertTokenizer
 
 
 class MnistDataLoader(BaseDataLoader):
@@ -49,3 +50,44 @@ class W_ClassDataLoader(BaseDataLoader):
         self.dataset = TensorDataset(data_x, data_y)
 
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+
+
+class BertWDataLoader(BaseDataLoader):
+    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.1, num_workers=2, training=True):
+        self.data_dir = data_dir
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
+
+        input_ids=[]
+        labels = []
+        all_categories = []
+
+        for filename in findFiles(self.data_dir+'*.txt'):
+            category = os.path.splitext(os.path.basename(filename))[0]
+            all_categories.append(category)
+            lines = readLines(filename)
+            for line in lines:
+                encoded_name = self.tokenizer.encode(line)
+                input_ids.append(torch.tensor(encoded_name))
+                labels.append(all_categories.index(category))
+
+        input_ids = pad_sequence(input_ids, batch_first=True)
+
+        attention_masks = self._createAttentionMask(input_ids)
+
+        labels = torch.tensor(labels)
+
+        self.dataset = TensorDataset(input_ids, attention_masks, labels)
+
+        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+
+    @staticmethod
+    def _createAttentionMask(input_ids):
+        attention_masks = []
+
+        for sent in input_ids:
+            # Create the attention mask.
+            #   - If a token ID is 0, then it's padding, set the mask to 0.
+            #   - If a token ID is > 0, then it's a real token, set the mask to 1.
+            att_mask = [int(token_id > 0) for token_id in sent]
+            attention_masks.append(att_mask)
+        return torch.tensor(attention_masks)

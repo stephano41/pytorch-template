@@ -63,15 +63,6 @@ class BaseDataLoader(DataLoader):
             return DataLoader(sampler=self.valid_sampler, **self.init_kwargs)
 
 
-def _weighted_sampler(targets, subset_idx):
-    class_sample_count = torch.tensor(
-        [(targets[subset_idx] == t).sum() for t in torch.unique(targets, sorted=True)])
-    weight = 1. / class_sample_count.float()
-    samples_weight = torch.tensor([weight[t] for t in targets[subset_idx]])
-
-    return WeightedRandomSampler(samples_weight, len(samples_weight))
-
-
 class WeightedDataLoader(DataLoader):
     """
     Base class for all data loaders
@@ -118,13 +109,22 @@ class WeightedDataLoader(DataLoader):
         valid_idx = idx_full[0:len_valid]
         train_idx = np.delete(idx_full, np.arange(0, len_valid))
 
-        train_sampler = _weighted_sampler(targets, train_idx)
+        train_sampler = self._weighted_sampler(targets, train_idx)
 
         # turn off shuffle option which is mutually exclusive with sampler
         self.shuffle = False
         self.n_samples = len(train_idx)
 
         return train_sampler, train_idx, valid_idx
+
+    @staticmethod
+    def _weighted_sampler(targets, subset_idx):
+        class_sample_count = torch.tensor(
+            [(targets[subset_idx] == t).sum() for t in torch.unique(targets, sorted=True)])
+        weight = 1. / class_sample_count.float()
+        samples_weight = torch.tensor([weight[t] for t in targets[subset_idx]])
+
+        return WeightedRandomSampler(samples_weight, len(samples_weight))
 
     def split_validation(self):
         return DataLoader(pin_memory=True, dataset=self.valid_set, **self.init_kwargs)

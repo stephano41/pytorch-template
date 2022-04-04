@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from base import BaseModel
 import utils.NLP as NLP
+from transformers import BertForSequenceClassification
 
 
 class MnistModel(BaseModel):
@@ -75,3 +76,13 @@ class LSTM(nn.Module):
         return out
 
     # TODO transformer model
+
+    # https://huggingface.co/transformers/v3.0.2/model_doc/bert.html#bertforsequenceclassification
+    # transformer model
+    def BertClassifier(output_size, output_attentions=False, output_hidden_states=False):
+        return BertForSequenceClassification.from_pretrained(
+            "bert-base-uncased",
+            num_labels=output_size,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+        )
