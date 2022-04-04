@@ -1,5 +1,7 @@
 import argparse
 import collections
+import time
+import math
 import torch
 import numpy as np
 import data_loader.data_loaders as module_data
@@ -7,7 +9,7 @@ import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
 from parse_config import ConfigParser
-from trainer import Trainer
+import trainer as module_trainer
 from utils import prepare_device
 
 
@@ -44,14 +46,24 @@ def main(config):
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
 
-    trainer = Trainer(model, criterion, metrics, optimizer,
-                      config=config,
-                      device=device,
-                      data_loader=data_loader,
-                      valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
+    trainer = getattr(module_trainer, config['trainer']['type'])(model, criterion, metrics, optimizer,
+                                                                 config=config,
+                                                                 device=device,
+                                                                 data_loader=data_loader,
+                                                                 valid_data_loader=valid_data_loader,
+                                                                 lr_scheduler=lr_scheduler
+                                                                 )
 
+    start = time.time()
     trainer.train()
+    print("train time:", timeSince(start))
+
+def timeSince(since):
+    now = time.time()
+    s = now - since
+    m = math.floor(s / 60)
+    s -= m * 60
+    return '%dm %ds' % (m, s)
 
 
 if __name__ == '__main__':
@@ -68,6 +80,7 @@ if __name__ == '__main__':
     options = [
         CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
         CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
+        CustomArgs(['--ep', '--epoch_n'], type=int, target='trainer;epochs')
     ]
     config = ConfigParser.from_args(args, options)
     main(config)
