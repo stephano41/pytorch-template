@@ -1,5 +1,5 @@
 import torch
-
+# TODO add more metrics
 
 def accuracy(output, target):
     with torch.no_grad():
