@@ -8,7 +8,7 @@ from srcs.utils import instantiate
 
 logger = logging.getLogger('evaluate')
 
-@hydra.main(config_path='conf', config_name='evaluate')
+@hydra.main(config_path='../conf', config_name='evaluate')
 def main(config):
     logger.info('Loading checkpoint: {} ...'.format(config.checkpoint))
     checkpoint = torch.load(config.checkpoint)

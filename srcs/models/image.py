@@ -1,8 +1,9 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from ._base_model import BaseModel
 
 
-class MnistModel(nn.Module):
+class MnistModel(BaseModel):
     def __init__(self, num_classes=10):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)

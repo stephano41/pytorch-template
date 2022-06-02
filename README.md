@@ -55,11 +55,11 @@ Simple project base template for PyTorch deep Learning project.
   │   └── ...
   ├── srcs # source code.
   │   ├── data_loader           # data loading, preprocessing
-  │   │   └── data_loaders.py
+  │   │   └── mnist_data_loaders.py
   │   ├── model
   │   │   ├── loss.py
   │   │   ├── metric.py
-  │   │   └── model.py
+  │   │   └── image.py
   │   ├── trainer               # customized class managing training process
   │   │   ├── base.py
   │   │   └── trainer.py
@@ -147,10 +147,10 @@ data_loader:
   num_workers: ${n_cpu}
 
 arch:
-  _target_: srcs.model.model.MnistModel
+  _target_: srcs.models.MnistModel
   num_classes: 10
 loss:
-  _target_: srcs.model.loss.nll_loss
+  _target_: srcs.loss.nll_loss
 optimizer:
   _target_: torch.optim.Adam
   lr: ${learning_rate}
@@ -162,8 +162,8 @@ lr_scheduler:
   gamma: ${scheduler_gamma}
 
 metrics:
-- _target_: srcs.model.metric.accuracy
-- _target_: srcs.model.metric.top_k_acc
+- _target_: srcs.metric.accuracy
+- _target_: srcs.metric.top_k_acc
 
 n_gpu: 1
 n_cpu: 8
