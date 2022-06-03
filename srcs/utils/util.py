@@ -1,17 +1,19 @@
-import yaml
-import hydra
 import logging
-import torch
-import torch.distributed as dist
-from omegaconf import OmegaConf
-from pathlib import Path
+from functools import partial, update_wrapper
 from importlib import import_module
 from itertools import repeat
-from functools import partial, update_wrapper
+from pathlib import Path
+
+import hydra
+import torch
+import torch.distributed as dist
+import yaml
+from omegaconf import OmegaConf
 
 
 def is_master():
     return not dist.is_initialized() or dist.get_rank() == 0
+
 
 def get_logger(name=None):
     if is_master():
@@ -35,10 +37,12 @@ def collect(scalar):
     dist.reduce(scalar, 0, dist.ReduceOp.SUM)
     return scalar.item() / dist.get_world_size()
 
+
 def inf_loop(data_loader):
     ''' wrapper function for endless data loader. '''
     for loader in repeat(data_loader):
         yield from loader
+
 
 def instantiate(config, *args, is_func=False, **kwargs):
     """
@@ -65,9 +69,11 @@ def instantiate(config, *args, is_func=False, **kwargs):
         return partial_func
     return hydra.utils.instantiate(config, *args, **kwargs)
 
+
 def write_yaml(content, fname):
     with fname.open('wt') as handle:
         yaml.dump(content, handle, indent=2, sort_keys=False)
+
 
 def write_conf(config, save_path):
     save_path = Path(save_path)

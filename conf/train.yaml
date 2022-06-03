@@ -14,7 +14,7 @@ defaults:
 
   - status: train
 
-  - override hydra/job_logging : custom
+  - override hydra/job_logging: custom
 
 hydra:
   run:

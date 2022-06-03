@@ -1,20 +1,22 @@
 import os
 import signal
-import torch
-import torch.distributed as dist
 from abc import abstractmethod, ABCMeta
 from pathlib import Path
 from shutil import copyfile
+
+import torch
+import torch.distributed as dist
 from numpy import inf
 
-from srcs.utils import write_conf, is_master, get_logger
 from srcs.logger import TensorboardWriter, EpochMetrics
+from srcs.utils import write_conf, is_master, get_logger
 
 
 class BaseTrainer(metaclass=ABCMeta):
     """
     Base class for all trainers
     """
+
     def __init__(self, model, criterion, metric_ftns, optimizer, config):
         self.config = config
         self.logger = get_logger('trainer')
@@ -76,7 +78,7 @@ class BaseTrainer(metaclass=ABCMeta):
             # print result metrics of this epoch
             max_line_width = max(len(line) for line in str(self.ep_metrics).splitlines())
             # divider ---
-            self.logger.info('-'*max_line_width)
+            self.logger.info('-' * max_line_width)
             self.logger.info(str(self.ep_metrics.latest()) + '\n')
 
             # check if model performance improved or not, for early stopping and topk saving
@@ -102,9 +104,8 @@ class BaseTrainer(metaclass=ABCMeta):
             self.ep_metrics.to_csv('epoch-results.csv')
 
             # divider ===
-            self.logger.info('='*max_line_width)
+            self.logger.info('=' * max_line_width)
             dist.barrier()
-
 
     def _save_checkpoint(self, epoch, save_best=False, save_latest=True):
         """

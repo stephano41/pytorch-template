@@ -1,12 +1,14 @@
-import numpy as np
+import os
+
 import hydra
+import numpy as np
 import torch
 import torch.distributed as dist
 from omegaconf import OmegaConf
-from pathlib import Path
+
 from srcs.trainer import Trainer
 from srcs.utils import instantiate, get_logger
-import os
+
 # fix random seeds for reproducibility
 SEED = 123
 torch.manual_seed(SEED)
@@ -14,6 +16,7 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
 os.environ["PL_TORCH_DISTRIBUTED_BACKEND"] = "gloo"
+
 
 def train_worker(config):
     logger = get_logger('train')

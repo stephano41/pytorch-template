@@ -31,11 +31,10 @@ def get_data_loaders(data_dir, batch_size, shuffle=True, validation_split=0.0, n
 
         train_sampler, valid_sampler = None, None
         if dist.is_initialized():
-            loader_args['shuffle']=False
+            loader_args['shuffle'] = False
             train_sampler = DistributedSampler(train_dataset)
             valid_sampler = DistributedSampler(valid_dataset)
         return DataLoader(train_dataset, sampler=train_sampler, **loader_args), \
                DataLoader(valid_dataset, sampler=valid_sampler, **loader_args)
     else:
         return DataLoader(dataset, **loader_args)
-
