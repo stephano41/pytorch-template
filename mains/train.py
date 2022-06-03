@@ -57,6 +57,7 @@ def main(config):
 
     trainer.shutdown()
 
+
 logger = logging.getLogger('train')
 @hydra.main(config_path='../conf/', config_name='train')
 def old_main(config):
@@ -86,6 +87,6 @@ def old_main(config):
 
 if __name__ == '__main__':
     # pylint: disable=no-value-for-parameter
-    old_main()
-    # ray.init()
-    # main()
+    # old_main()
+    ray.init()
+    main()
