@@ -62,11 +62,11 @@ Simple project base template for PyTorch deep Learning project.
   │   └── ...
   ├── srcs # source code.
   │   ├── data_loader           # data loading, preprocessing
-  │   │   └── data_loaders.py
+  │   │   └── mnist_data_loaders.py
   │   ├── model
   │   │   ├── loss.py
   │   │   ├── metric.py
-  │   │   └── model.py
+  │   │   └── images.py
   │   ├── trainer               # customized class managing training process
   │   │   ├── base.py
   │   │   └── trainer.py
