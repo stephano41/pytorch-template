@@ -7,11 +7,16 @@ metrics:
   - _target_: srcs.metric.top_k_acc
 
 defaults:
+  - _self_
   - data: mnist_train
   - model: mnist_lenet
   - hparams: lenet_baseline
 
   - status: train
 
-  - hydra/job_logging : custom
-  - hydra/run/dir: job_timestamp
+  - override hydra/job_logging : custom
+
+hydra:
+  run:
+    dir: ../outputs/${status}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
