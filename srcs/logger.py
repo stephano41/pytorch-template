@@ -1,12 +1,13 @@
-import os
 import logging
-import pandas as pd
-from itertools import product
-from torch.utils.tensorboard import SummaryWriter
+import os
 from datetime import datetime
+from itertools import product
 
+import pandas as pd
+from torch.utils.tensorboard import SummaryWriter
 
 logger = logging.getLogger('logger')
+
 
 class TensorboardWriter():
     def __init__(self, log_dir, enabled):
@@ -46,17 +47,19 @@ class TensorboardWriter():
             def wrapper(tag, data, *args, **kwargs):
                 if add_data is not None:
                     add_data(tag, data, self.step, *args, **kwargs)
+
             return wrapper
         else:
             attr = getattr(self.writer, name)
             return attr
+
 
 class BatchMetrics:
     def __init__(self, *keys, postfix='', writer=None):
         self.writer = writer
         self.postfix = postfix
         if postfix:
-            keys = [k+postfix for k in keys]
+            keys = [k + postfix for k in keys]
         self._data = pd.DataFrame(index=keys, columns=['total', 'counts', 'average'])
         self.reset()
 
@@ -81,11 +84,12 @@ class BatchMetrics:
     def result(self):
         return dict(self._data.average)
 
+
 class EpochMetrics:
     def __init__(self, metric_names, phases=('train', 'valid'), monitoring='off'):
         # setup pandas DataFrame with hierarchical columns
         columns = tuple(product(metric_names, phases))
-        self._data = pd.DataFrame(columns=columns) # TODO: add epoch duration
+        self._data = pd.DataFrame(columns=columns)  # TODO: add epoch duration
         self.monitor_mode, self.monitor_metric = self._parse_monitoring_mode(monitoring)
         self.topk_idx = []
 
@@ -127,7 +131,7 @@ class EpochMetrics:
         """
         if len(self.topk_idx) > k and self.monitor_mode != 'off':
             last_epoch = self._data.index[-1]
-            self.topk_idx = self.topk_idx[:(k+1)]
+            self.topk_idx = self.topk_idx[:(k + 1)]
             if last_epoch not in self.topk_idx:
                 to_delete = last_epoch
             else:
@@ -139,7 +143,7 @@ class EpochMetrics:
 
     def update(self, epoch, result):
         epoch_idx = f'epoch-{epoch}'
-        self._data.loc[epoch_idx] = {tuple(k.split('/')):v for k, v in result.items()}
+        self._data.loc[epoch_idx] = {tuple(k.split('/')): v for k, v in result.items()}
 
         self.topk_idx.append(epoch_idx)
         self.topk_idx = sorted(self.topk_idx, key=self.minimizing_metric)

@@ -1,21 +1,23 @@
 import logging
-import torch
 from abc import abstractmethod, ABCMeta
 from pathlib import Path
 from shutil import copyfile
-from numpy import inf
+
+import torch
 from hydra.utils import to_absolute_path, get_original_cwd
+from numpy import inf
 
-from srcs.utils import write_conf
 from srcs.logger import TensorboardWriter, EpochMetrics
-
+from srcs.utils import write_conf
 
 logger = logging.getLogger('base-trainer')
+
 
 class BaseTrainer(metaclass=ABCMeta):
     """
     Base class for all trainers
     """
+
     def __init__(self, model, criterion, metric_ftns, optimizer, config):
         self.config = config
 
@@ -77,7 +79,7 @@ class BaseTrainer(metaclass=ABCMeta):
             # print result metrics of this epoch
             max_line_width = max(len(line) for line in str(self.ep_metrics).splitlines())
             # divider ---
-            logger.info('-'*max_line_width)
+            logger.info('-' * max_line_width)
             logger.info(str(self.ep_metrics.latest()) + '\n')
 
             # check if model performance improved or not, for early stopping and topk saving
@@ -104,7 +106,7 @@ class BaseTrainer(metaclass=ABCMeta):
             self.ep_metrics.to_csv('epoch-results.csv')
 
             # divider ===
-            logger.info('='*max_line_width)
+            logger.info('=' * max_line_width)
 
     def _prepare_device(self, n_gpu_use):
         """

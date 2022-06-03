@@ -1,10 +1,11 @@
-import torch
-import numpy as np
 import logging
+
 import hydra
+import numpy as np
+import torch
+
 from srcs.trainer import Trainer
 from srcs.utils import instantiate
-
 
 # fix random seeds for reproducibility
 SEED = 123
@@ -14,6 +15,7 @@ torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
 
 logger = logging.getLogger('train')
+
 
 @hydra.main(config_path='conf/', config_name='train')
 def main(config):

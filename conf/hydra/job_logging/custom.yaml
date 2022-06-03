@@ -18,6 +18,6 @@ handlers:
     filename: ${hydra.job.name}.log
 root:
   level: INFO
-  handlers: [console, file]
+  handlers: [ console, file ]
 
 disable_existing_loggers: False

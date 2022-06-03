@@ -1,17 +1,20 @@
 import logging
+
 import torch
 from torchvision.utils import make_grid
-from .base import BaseTrainer
-from srcs.utils import inf_loop
-from srcs.logger import BatchMetrics
 
+from srcs.logger import BatchMetrics
+from srcs.utils import inf_loop
+from .base import BaseTrainer
 
 logger = logging.getLogger('trainer')
+
 
 class Trainer(BaseTrainer):
     """
     Trainer class
     """
+
     def __init__(self, model, criterion, metric_ftns, optimizer, config, data_loader,
                  valid_data_loader=None, lr_scheduler=None, len_epoch=None):
         super().__init__(model, criterion, metric_ftns, optimizer, config)
@@ -27,8 +30,10 @@ class Trainer(BaseTrainer):
         self.valid_data_loader = valid_data_loader
         self.lr_scheduler = lr_scheduler
 
-        self.train_metrics = BatchMetrics('loss', *[m.__name__ for m in self.metric_ftns], postfix='/train', writer=self.writer)
-        self.valid_metrics = BatchMetrics('loss', *[m.__name__ for m in self.metric_ftns], postfix='/valid', writer=self.writer)
+        self.train_metrics = BatchMetrics('loss', *[m.__name__ for m in self.metric_ftns], postfix='/train',
+                                          writer=self.writer)
+        self.valid_metrics = BatchMetrics('loss', *[m.__name__ for m in self.metric_ftns], postfix='/valid',
+                                          writer=self.writer)
 
     def _train_epoch(self, epoch):
         """
@@ -74,7 +79,7 @@ class Trainer(BaseTrainer):
         # add result metrics on entire epoch to tensorboard
         self.writer.set_step(epoch)
         for k, v in log.items():
-            self.writer.add_scalar(k+'/epoch', v)
+            self.writer.add_scalar(k + '/epoch', v)
         return log
 
     def _valid_epoch(self, epoch):

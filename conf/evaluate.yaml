@@ -8,5 +8,5 @@ metrics:
 defaults:
   - dataset: mnist_test
 
-  - hydra/job_logging : custom
+  - hydra/job_logging: custom
   - hydra/run/dir: no_chdir

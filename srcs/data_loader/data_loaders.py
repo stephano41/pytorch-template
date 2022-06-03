@@ -31,4 +31,3 @@ def get_data_loaders(data_dir, batch_size, shuffle=True, validation_split=0.0, n
                DataLoader(valid_dataset, **loader_args)
     else:
         return DataLoader(dataset, **loader_args)
-
