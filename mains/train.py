@@ -6,15 +6,14 @@ from omegaconf import OmegaConf
 from pathlib import Path
 from srcs.trainer import Trainer
 from srcs.utils import instantiate, get_logger
-
-
+import os
 # fix random seeds for reproducibility
 SEED = 123
 torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
-
+os.environ["PL_TORCH_DISTRIBUTED_BACKEND"] = "gloo"
 
 def train_worker(config):
     logger = get_logger('train')
@@ -42,6 +41,7 @@ def train_worker(config):
                       lr_scheduler=lr_scheduler)
     trainer.train()
 
+
 def init_worker(rank, ngpus, working_dir, config):
     # initialize training config
     config = OmegaConf.create(config)
@@ -60,17 +60,19 @@ def init_worker(rank, ngpus, working_dir, config):
     # start training processes
     train_worker(config)
 
+
 @hydra.main(config_path='../conf/', config_name='train')
 def main(config):
     n_gpu = torch.cuda.device_count()
     assert n_gpu, 'Can\'t find any GPU device on this machine.'
 
-    working_dir = str(Path.cwd().relative_to(hydra.utils.get_original_cwd()))
+    working_dir = os.path.relpath(os.getcwd(), hydra.utils.get_original_cwd())
 
     if config.resume is not None:
         config.resume = hydra.utils.to_absolute_path(config.resume)
     config = OmegaConf.to_yaml(config, resolve=True)
     torch.multiprocessing.spawn(init_worker, nprocs=n_gpu, args=(n_gpu, working_dir, config))
+
 
 if __name__ == '__main__':
     # pylint: disable=no-value-for-parameter
