@@ -2,6 +2,8 @@ from functools import partial, update_wrapper
 from importlib import import_module
 from itertools import repeat
 from pathlib import Path
+import torch
+import numpy as np
 
 import hydra
 import yaml
@@ -50,3 +52,10 @@ def write_conf(config, save_path):
     save_path.parent.mkdir(parents=True, exist_ok=True)
     config_dict = OmegaConf.to_container(config, resolve=True)
     write_yaml(config_dict, save_path)
+
+
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)

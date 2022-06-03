@@ -1,18 +1,12 @@
 import logging
 
 import hydra
-import numpy as np
-import torch
 
 from srcs.trainer import Trainer
-from srcs.utils import instantiate
+from srcs.utils import instantiate, set_seed
 
 # fix random seeds for reproducibility
-SEED = 123
-torch.manual_seed(SEED)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-np.random.seed(SEED)
+set_seed(123)
 
 logger = logging.getLogger('train')
 
