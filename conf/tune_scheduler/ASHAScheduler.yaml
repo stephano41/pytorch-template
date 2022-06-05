@@ -1,0 +1,4 @@
+_target_: ray.tune.schedulers.ASHAScheduler
+max_t: 15
+grace_period: 1
+reduction_factor: 2

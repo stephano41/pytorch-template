@@ -4,9 +4,10 @@ from ray.util.sgd.torch import TrainingOperator
 from ray.util.sgd.utils import NUM_SAMPLES
 
 from utils import instantiate
+# from hydra.utils import instantiate
 
 
-class GRFTrainingOperator(TrainingOperator):
+class TrainableOperator(TrainingOperator):
     def setup(self, config):
         logger = logging.getLogger('train')
         # setup data_loader instances
@@ -22,7 +23,7 @@ class GRFTrainingOperator(TrainingOperator):
         criterion = instantiate(config.loss, is_func=True)
         self.metrics = [instantiate(met, is_func=True) for met in config['metrics']]
 
-        # build optimizer, learning rate scheduler.
+        # build optimizer, learning rate tune_scheduler.
         optimizer = instantiate(config.optimizer, model.parameters())
         lr_scheduler = instantiate(config.lr_scheduler, optimizer)
         self.model, self.optimizer, self.criterion, self.scheduler = \

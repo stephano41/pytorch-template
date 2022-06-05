@@ -1,0 +1,4 @@
+scheduler_step_freq: epoch
+use_gpu: true
+use_tqdm: true
+num_workers: 1

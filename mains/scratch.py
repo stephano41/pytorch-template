@@ -1,12 +1,25 @@
 import hydra
-# import os
-from utils import instantiate
+import os
+
+from omegaconf import OmegaConf
+
+from ray.util.sgd.torch import TorchTrainer
+os.environ["HYDRA_FULL_ERROR"]="1"
+
+# from hydra.utils import instantiate
 
 
 @hydra.main(config_path='../conf/', config_name='train')
 def main(config):
-    metric = [instantiate(met, is_func=True) for met in config['metrics']]
-    print(metric)
+    OmegaConf.resolve(config)
+
+    trainer = TorchTrainer.as_trainable(
+        config=config,
+        **config.trainer
+    )
+    print(trainer)
+    # trainer = trainer(config=config)
+    # print(trainer)
 
 if __name__ == '__main__':
     main()
