@@ -135,16 +135,10 @@ class BaseTrainer(metaclass=ABCMeta):
         :param save_latest: if True, save a copy of current checkpoint file as 'model_latest.pth'
         """
         arch = type(self.model).__name__
-        state = {
-            'arch': arch,
-            'epoch': epoch,
-            'state_dict': self.model.state_dict(),
-            'optimizer': self.optimizer.state_dict(),
-            'epoch_metrics': self.ep_metrics,
-            'config': self.config
-        }
         filename = str(self.checkpt_dir / 'checkpoint-epoch{}.pth'.format(epoch))
-        torch.save(state, filename)
+        save_checkpoint(filename, arch, epoch, self.model.state_dict(), self.optimizer.state_dict(),
+                                self.config,
+                                epoch_metrics=self.ep_metrics)
 
         cwd = Path.cwd().relative_to(get_original_cwd())
         logger.info(f"Model checkpoint saved at: \n    {cwd}/{filename}")
@@ -184,3 +178,16 @@ class BaseTrainer(metaclass=ABCMeta):
             self.optimizer.load_state_dict(checkpoint['optimizer'])
 
         logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
+
+
+def save_checkpoint(checkpoint_name, arch, epoch, model_dict, optimizer_dict, config, **kwargs):
+    state = {
+        'arch': arch,
+        'epoch': epoch,
+        'state_dict': model_dict,
+        'optimizer': optimizer_dict,
+        'config': config
+    }
+    state = state | kwargs
+    torch.save(state, checkpoint_name)
+    return state

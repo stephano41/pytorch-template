@@ -1,12 +1,13 @@
 import logging
+import os
 
 import hydra
 from ray.tune import CLIReporter
-
-from srcs.trainer import Trainer
+from ray.train import Trainer
+# from srcs.trainer import Trainer
 from srcs.utils import instantiate, set_seed
 from ray.util.sgd.torch import TorchTrainer
-
+from srcs.trainer.tune_trainer import train_func
 import ray.tune as tune
 
 import ray
@@ -19,10 +20,10 @@ from pathlib import Path
 
 # fix random seeds for reproducibility
 set_seed(123)
-
+os.environ["PL_TORCH_DISTRIBUTED_BACKEND"]="Gloo"
 
 @hydra.main(config_path='../conf/', config_name='train')
-def main(config):
+def old_main(config):
     # have to resolve before multiprocess otherwise will bug out
     OmegaConf.resolve(config)
 
@@ -55,6 +56,18 @@ def main(config):
     )
 
     logger.info(analysis.best_config)
+
+
+@hydra.main(config_path='../conf/', config_name='train')
+def main(config):
+    OmegaConf.resolve(config)
+    trainer = Trainer(backend='torch', num_workers=1, logdir=Path.cwd(), use_gpu=True)
+    trainer.start()
+    trainer.run(
+        train_func=train_func,
+        config=config,
+    )
+    trainer.shutdown()
 
 
 if __name__ == '__main__':
