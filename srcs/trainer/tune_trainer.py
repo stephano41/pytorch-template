@@ -3,15 +3,14 @@ import logging
 from pathlib import Path
 
 from utils import instantiate
-from ray import train
-# from ray import tune
+from ray import tune
 import torch
 from srcs.logger import BatchMetrics
 from srcs.trainer.base import save_checkpoint, prepare_devices
 from hydra.utils import get_original_cwd
 
 
-def train_func(config):
+def train_func(config, checkpoint_dir=None):
     # os.chdir(get_original_cwd())
 
     logger = logging.getLogger("train")
@@ -43,11 +42,11 @@ def train_func(config):
     # later changed if checkpoint
     start_epoch=0
 
-    checkpoint = train.load_checkpoint()
-    if checkpoint:
-        model.load_state_dict(checkpoint.get("state_dict"))
-        optimizer.load_state_dict(checkpoint.get("optimizer"))
-        start_epoch=checkpoint.get("epoch",-1)+1
+    if checkpoint_dir:
+        checkpoint = torch.load(checkpoint_dir)
+        model.load_state_dict(checkpoint["state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer"])
+        start_epoch=checkpoint["epoch"]+1
 
     metric_ftns = [instantiate(met, is_func=True) for met in config['metrics']]
     train_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
@@ -94,9 +93,12 @@ def train_func(config):
             'state_dict': model.state_dict(),
             "optimizer": optimizer.state_dict()
         }
-        train.save_checkpoint(**state)
+
+        with tune.checkpoint_dir(epoch) as checkpoint_dir:
+            filename = str(Path(checkpoint_dir) / 'model_checkpoint.pth')
+            torch.save(state, filename)
 
         log = train_metrics.result()
         val_log = valid_metrics.result()
         log.update(**{'val_'+k : v for k, v in val_log.items()})
-        train.report(**log)
+        tune.report(**log)
