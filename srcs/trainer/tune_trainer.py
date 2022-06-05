@@ -7,35 +7,38 @@ from ray import train
 # from ray import tune
 import torch
 from srcs.logger import BatchMetrics
-from srcs.trainer.base import save_checkpoint
+from srcs.trainer.base import save_checkpoint, prepare_devices
 from hydra.utils import get_original_cwd
 
 
 def train_func(config):
-    os.chdir(get_original_cwd())
+    # os.chdir(get_original_cwd())
 
-    logger = logging.getLogger("trainer")
+    logger = logging.getLogger("train")
+
+    device, device_ids = prepare_devices(config['n_gpu'])
 
     # setup dataloaders
-    data_loader, valid_data_loader = instantiate(config.data_loader)
-    data_loader = train.torch.prepare_data_loader(data_loader)
-    valid_data_loader = train.torch.prepare_data_loader(valid_data_loader)
+    data_loader, valid_data_loader = instantiate(config['data_loader'])
 
     # setup model
-    model = instantiate(config.arch)
+    model = instantiate(config['arch'])
     logger.info(model)
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     logger.info(f'Trainable parameters: {sum([p.numel() for p in trainable_params])}')
 
-    model = train.torch.prepare_model(model)
+    model = model.to(device)
 
-    criterion = instantiate(config.loss, is_func=True)
+    if len(device_ids) > 1:
+        model = torch.nn.DataParallel(model, device_ids=device_ids)
 
-    optimizer = instantiate(config.optimizer, model.parameters())
+    criterion = instantiate(config['loss'], is_func=True)
+
+    optimizer = instantiate(config['optimizer'], model.parameters())
 
     lr_scheduler = None
     if "lr_scheduler" in config:
-        lr_scheduler = instantiate(config.lr_scheduler, optimizer)
+        lr_scheduler = instantiate(config['lr_scheduler'], optimizer)
 
     # later changed if checkpoint
     start_epoch=0
@@ -46,15 +49,16 @@ def train_func(config):
         optimizer.load_state_dict(checkpoint.get("optimizer"))
         start_epoch=checkpoint.get("epoch",-1)+1
 
-    metric_ftns = [instantiate(met, is_func=True) for met in config.metrics]
+    metric_ftns = [instantiate(met, is_func=True) for met in config['metrics']]
     train_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
     valid_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
 
-    for epoch in range(start_epoch, config.trainer.epochs):  # loop over the dataset multiple times
+    for epoch in range(start_epoch, config['trainer']['epochs']):  # loop over the dataset multiple times
         train_metrics.reset()
         for i, data in enumerate(data_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, targets = data
+            inputs, targets = inputs.to(device), targets.to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -72,6 +76,7 @@ def train_func(config):
         for i, data in enumerate(valid_data_loader, 0):
             with torch.no_grad():
                 inputs, targets = data
+                inputs, targets = inputs.to(device), targets.to(device)
 
                 outputs = model(inputs)
 
