@@ -3,7 +3,8 @@ resume:
 
 metrics:
   - _target_: srcs.metrics.accuracy
-  - _target_: srcs.metrics.top_k_acc
+  - _target_: srcs.metrics.f1
+  - _target_: srcs.metrics.g_score
 
 defaults:
   - _self_
@@ -17,4 +18,4 @@ defaults:
 
 hydra:
   run:
-    dir: ./outputs/${status}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: ./outputs/${status}-${now:%Y-%m-%d}-${now:%H-%M-%S}
