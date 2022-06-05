@@ -38,18 +38,13 @@ def main(config):
     conf = OmegaConf.to_container(config, resolve=True)
 
     analysis = tune.run(
-        train_func,
-        scheduler=scheduler,
-        progress_reporter=reporter,
-        local_dir=Path.cwd().parent,
-        name=Path.cwd().name,
-        metric="val_accuracy",
-        mode="max",
-        config=conf,
-        resources_per_trial={"cpu": conf["n_cpu"], "gpu": conf["n_gpu"]}
-
-
-    )
+            tune.with_parameters(instantiate(config.trainer.train_func, is_func=True), arch_cfg=config),
+            **config.trainer.run,
+            progress_reporter=reporter,
+            scheduler= scheduler,
+            local_dir=Path.cwd().parent,
+            name=Path.cwd().name
+                           )
 
     logger.info(analysis.best_config)
 

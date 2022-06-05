@@ -18,6 +18,8 @@ defaults:
 
   - override hydra/job_logging: custom
 
+epochs: 100
+
 hydra:
   run:
     dir: ./outputs/${status}-${now:%Y-%m-%d}-${now:%H-%M-%S}

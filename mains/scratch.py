@@ -1,5 +1,6 @@
 import hydra
 import os
+import logging
 
 from omegaconf import OmegaConf
 
@@ -12,13 +13,9 @@ os.environ["HYDRA_FULL_ERROR"]="1"
 @hydra.main(config_path='../conf/', config_name='train')
 def main(config):
     OmegaConf.resolve(config)
+    logger = logging.getLogger('train')
 
-    trainer = TorchTrainer.as_trainable(
-        config=config,
-        **config.trainer
-    )
-    print(trainer)
-    # trainer = trainer(config=config)
+    logger.info(config.trainer)
     # print(trainer)
 
 if __name__ == '__main__':
