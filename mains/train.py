@@ -1,21 +1,15 @@
 import logging
-import os
 
 import hydra
 from ray.tune import CLIReporter
-from ray.train import Trainer
-# from srcs.trainer import Trainer
+
 from srcs.utils import instantiate, set_seed
-from ray.util.sgd.torch import TorchTrainer
-from srcs.trainer.tune_trainer import train_func
+
 import ray.tune as tune
-from srcs.trainer.base import prepare_devices
+
 import ray
-from omegaconf import OmegaConf, open_dict
+from omegaconf import OmegaConf
 
-
-from srcs.trainer.sgd_trainer import TrainableOperator
-import srcs.metrics as module_metric
 from pathlib import Path
 
 # fix random seeds for reproducibility
