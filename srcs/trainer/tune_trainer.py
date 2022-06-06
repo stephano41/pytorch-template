@@ -2,6 +2,8 @@ import os
 import logging
 from pathlib import Path
 
+from ray.tune.function_runner import StatusReporter
+
 from utils import instantiate, write_conf
 from ray import tune
 import torch
@@ -23,11 +25,12 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
     # setup dataloaders
     data_loader, valid_data_loader = instantiate(arch_cfg.data_loader)
 
+    # logger=logging.getLogger('tune')
     # setup model
     model = instantiate(arch_cfg.arch)
-    logger.info(model)
-    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    logger.info(f'Trainable parameters: {sum([p.numel() for p in trainable_params])}')
+
+    # trainable_params = filter(lambda p: p.requires_grad, model.parameters())
+    # logger.info(f'Trainable parameters: {sum([p.numel() for p in trainable_params])}')
 
     model = model.to(device)
 

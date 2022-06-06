@@ -1,7 +1,7 @@
 import logging
 
 import hydra
-from ray.tune import CLIReporter
+# from ray.tune.function_runner import StatusReporter
 
 from srcs.utils import instantiate, set_seed, trial_name
 
@@ -16,7 +16,6 @@ from srcs.logger import Reporter
 # fix random seeds for reproducibility
 set_seed(123)
 
-# fix logger issue
 logger = logging.getLogger("tune")
 
 @hydra.main(config_path='../conf/', config_name='tune')
@@ -30,7 +29,6 @@ def main(config):
         logger,
         metric_columns=["training_iteration", "val_loss"] + met_names
     )
-
 
     analysis = tune.run(
             tune.with_parameters(instantiate(config.trainer.train_func, is_func=True), arch_cfg=config),
