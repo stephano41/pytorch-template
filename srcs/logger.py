@@ -4,6 +4,7 @@ from datetime import datetime
 from itertools import product
 
 import pandas as pd
+from ray.tune import CLIReporter
 from torch.utils.tensorboard import SummaryWriter
 
 logger = logging.getLogger('logger')
@@ -156,3 +157,15 @@ class EpochMetrics:
 
     def __str__(self):
         return str(self._data)
+
+
+class Reporter(CLIReporter):
+    """
+    wrapper class around CLIReporter to incorporate python logging module
+    """
+    def __init__(self, logger, *args, **kwargs):
+        self.logger=logger
+        super(Reporter, self).__init__(*args, **kwargs)
+
+    def report(self, trials, done: bool, *sys_info):
+        logger.info(self._progress_str(trials, done, *sys_info))

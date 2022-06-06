@@ -23,11 +23,11 @@ def instantiate(cfg, *args, is_func=False, **kwargs):
     1. return None if config.class is None
     2. return function handle if is_func is True
     """
-    assert '_target_' in cfg, f'Config should have \'_target_\' for class instantiation.'
-    target = cfg['_target_']
-    if target is None:
-        return None
     if is_func:
+        assert '_target_' in cfg, f'Config should have \'_target_\' for class instantiation.'
+        target = cfg['_target_']
+        if target is None:
+            return None
         # get function handle
         modulename, funcname = target.rsplit('.', 1)
         mod = import_module(modulename)

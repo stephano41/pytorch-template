@@ -11,15 +11,13 @@ import ray
 from omegaconf import OmegaConf
 
 from pathlib import Path
+from srcs.logger import Reporter
 
 # fix random seeds for reproducibility
 set_seed(123)
 
-search={
-    "learning_rate": tune.loguniform(1e-4,1e-2),
-    "batch_size": tune.choice([128,256])
-}
-
+# fix logger issue
+logger = logging.getLogger("tune")
 
 @hydra.main(config_path='../conf/', config_name='tune')
 def main(config):
@@ -28,26 +26,23 @@ def main(config):
     met_funcs = [instantiate(met, is_func=True) for met in config.metrics]
     met_names = ["val_" + met.__name__ for met in met_funcs]
 
-    # TODO reporter to incorporate logger?
-    reporter = CLIReporter(
+    reporter = Reporter(
+        logger,
         metric_columns=["training_iteration", "val_loss"] + met_names
     )
-    scheduler = instantiate(config.tune_scheduler)
-    logger = logging.getLogger(config['status'])
 
-    # conf = OmegaConf.to_container(config, resolve=True)
 
     analysis = tune.run(
             tune.with_parameters(instantiate(config.trainer.train_func, is_func=True), arch_cfg=config),
-            **OmegaConf.to_container(config.trainer.run, resolve=True),
+            **OmegaConf.to_container(instantiate(config.trainer.run)),
             progress_reporter=reporter,
-            scheduler= scheduler,
             local_dir=Path.cwd().parent,
             name=Path.cwd().name,
-            config=search,
             trial_dirname_creator=trial_name
                            )
-
+    # TODO make resume work
+    # TODO add evaluation at the end
+    # TODO add confusion matrices
     logger.info(analysis.best_config)
     best_trial = analysis.best_trial
     best_checkpoint_dir = Path(best_trial.checkpoint.value)

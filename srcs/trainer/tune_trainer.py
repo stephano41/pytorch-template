@@ -18,8 +18,6 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
     arch_cfg = OmegaConf.merge(arch_cfg, config)
     write_conf(arch_cfg, "config.yaml")
 
-    logger = logging.getLogger(arch_cfg['status'])
-
     device, device_ids = prepare_devices(arch_cfg.n_gpu)
 
     # setup dataloaders
@@ -99,12 +97,13 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
             "optimizer": optimizer.state_dict()
         }
 
+        # create checkpoint
         with tune.checkpoint_dir(epoch) as checkpoint_dir:
             filename = str(Path(checkpoint_dir) / 'model_checkpoint.pth')
             torch.save(state, filename)
-        # TODO save final config
-        # TODO initialise tune.run parameters as dicitonary
-        log = train_metrics.result()
-        val_log = valid_metrics.result()
-        log.update(**{'val_'+k : v for k, v in val_log.items()})
-        tune.report(**log)
+
+            # log metrics, log in checkpoint in case actor dies half way
+            log = train_metrics.result()
+            val_log = valid_metrics.result()
+            log.update(**{'val_'+k : v for k, v in val_log.items()})
+            tune.report(**log)

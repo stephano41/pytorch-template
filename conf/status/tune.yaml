@@ -5,9 +5,5 @@ n_gpu: 1
 n_cpu: 16
 num_workers: 8
 
-trainer:
-  run:
-    raise_on_failed_trial: false
-    verbose: 2
-    num_samples: 2
+
 

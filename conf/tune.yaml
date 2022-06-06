@@ -14,9 +14,15 @@ defaults:
   - trainer: torch_trainer
 
   - status: tune
+  - search_space: lenet_search
 
   - override hydra/job_logging: custom
 
+trainer:
+  run:
+    raise_on_failed_trial: false
+    num_samples: 2
+    config: ${search_space}
 
 
 hydra:
