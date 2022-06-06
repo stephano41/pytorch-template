@@ -13,9 +13,11 @@ from srcs.trainer.base import prepare_devices
 from omegaconf import OmegaConf
 
 
+
 def train_func(config, arch_cfg, checkpoint_dir=None):
     # os.chdir(get_original_cwd())
     # cwd is changed to the trial folder
+
     config = OmegaConf.create(config)
     arch_cfg = OmegaConf.merge(arch_cfg, config)
     write_conf(arch_cfg, "config.yaml")

@@ -27,8 +27,9 @@ cfg = OmegaConf.create([
 def main(config):
     # OmegaConf.resolve(config)
     # dummytrain(search, arch_cfg=config)
-    print(os.getcwd())
-    print("done")
+    print(config)
+    OmegaConf.resolve(config)
+    print(config)
 
 
 def dummytrain(config, arch_cfg):

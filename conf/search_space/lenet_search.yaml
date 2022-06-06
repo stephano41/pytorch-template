@@ -1,6 +1,8 @@
-learning_rate:
-  _target_: ray.tune.loguniform
-  _args_: [1e-4, 1e-2]
-batch_size:
-  _target_: ray.tune.choice
-  _args_: [[128, 256]]
+optimizer:
+  lr:
+    _target_: ray.tune.loguniform
+    _args_: [1e-4, 1e-2]
+data_loader:
+  batch_size:
+    _target_: ray.tune.choice
+    _args_: [[128, 256]]
