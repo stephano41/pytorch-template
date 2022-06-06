@@ -8,6 +8,7 @@ import numpy as np
 import hydra
 import yaml
 from omegaconf import OmegaConf
+import re
 
 
 def inf_loop(data_loader):
@@ -42,22 +43,6 @@ def instantiate(cfg, *args, is_func=False, **kwargs):
     return hydra.utils.instantiate(cfg, *args, **kwargs)
 
 
-def init_func(config,*args, **kwargs):
-    target = config['_target_']
-    # get function handle
-    modulename, funcname = target.rsplit('.', 1)
-    mod = import_module(modulename)
-    func = getattr(mod, funcname)
-
-    # make partial function with arguments given in config, code
-    kwargs.update({k: v for k, v in config.items() if k != '_target_'})
-    partial_func = partial(func, *args, **kwargs)
-
-    # update original function's __name__ and __doc__ to partial function
-    update_wrapper(partial_func, func)
-    return partial_func
-
-
 def write_yaml(content, fname):
     with fname.open('wt') as handle:
         yaml.dump(content, handle, indent=2, sort_keys=False)
@@ -76,3 +61,13 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
 
+
+def trial_name(trial):
+    params = str(trial.evaluated_params)
+    name = str(trial)+params
+    # make it a valid file name
+    name = re.sub(r'[^\w\s-]', '', name.lower())
+    name = re.sub(r'[-\s]+', '-', name).strip('-_')
+    if len(name) > 50:
+        name = name[:50]
+    return name

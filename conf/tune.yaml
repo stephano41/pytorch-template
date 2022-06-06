@@ -1,4 +1,3 @@
-log_dir: logs/
 resume:
 
 metrics:
@@ -14,9 +13,11 @@ defaults:
   - tune_scheduler: ASHAScheduler
   - trainer: torch_trainer
 
-  - status: train
+  - status: tune
 
   - override hydra/job_logging: custom
+
+
 
 hydra:
   run:

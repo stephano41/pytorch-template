@@ -2,18 +2,23 @@ import os
 import logging
 from pathlib import Path
 
-from utils import instantiate
+from utils import instantiate, write_conf
 from ray import tune
 import torch
 from srcs.logger import BatchMetrics
-from srcs.trainer.base import save_checkpoint, prepare_devices
-from hydra.utils import get_original_cwd
+from srcs.trainer.base import prepare_devices
+
+from omegaconf import OmegaConf
 
 
 def train_func(config, arch_cfg, checkpoint_dir=None):
     # os.chdir(get_original_cwd())
+    # cwd is changed to the trial folder
+    config = OmegaConf.create(config)
+    arch_cfg = OmegaConf.merge(arch_cfg, config)
+    write_conf(arch_cfg, "config.yaml")
 
-    logger = logging.getLogger("train")
+    logger = logging.getLogger(arch_cfg['status'])
 
     device, device_ids = prepare_devices(arch_cfg.n_gpu)
 
@@ -97,7 +102,8 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
         with tune.checkpoint_dir(epoch) as checkpoint_dir:
             filename = str(Path(checkpoint_dir) / 'model_checkpoint.pth')
             torch.save(state, filename)
-
+        # TODO save final config
+        # TODO initialise tune.run parameters as dicitonary
         log = train_metrics.result()
         val_log = valid_metrics.result()
         log.update(**{'val_'+k : v for k, v in val_log.items()})
