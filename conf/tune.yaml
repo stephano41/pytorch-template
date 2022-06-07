@@ -9,11 +9,11 @@ defaults:
   - _self_
   - data: mnist_train
   - model: mnist_lenet
-  - hparams: lenet_baseline
   - tune_scheduler: ASHAScheduler
   - trainer: torch_trainer
 
   - status: tune
+  - search_alg: optuna
   - search_space: lenet_search
 
   - override hydra/job_logging: custom
@@ -21,8 +21,9 @@ defaults:
 trainer:
   run:
     raise_on_failed_trial: false
-    num_samples: 2
+    num_samples: 6
     config: ${search_space}
+    search_alg: ${search_alg}
 
 
 hydra:

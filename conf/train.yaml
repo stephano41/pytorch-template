@@ -10,7 +10,6 @@ defaults:
   - _self_
   - data: mnist_train
   - model: mnist_lenet
-  - hparams: lenet_baseline
   - tune_scheduler: ASHAScheduler
   - trainer: torch_trainer
 

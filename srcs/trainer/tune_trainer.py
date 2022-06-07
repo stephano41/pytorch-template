@@ -62,35 +62,11 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
 
     for epoch in range(start_epoch, arch_cfg.trainer.epochs):  # loop over the dataset multiple times
         train_metrics.reset()
-        for i, data in enumerate(data_loader, 0):
-            # get the inputs; data is a list of [inputs, labels]
-            inputs, targets = data
-            inputs, targets = inputs.to(device), targets.to(device)
-
-            # zero the parameter gradients
-            optimizer.zero_grad()
-
-            # forward + backward + optimize
-            outputs = model(inputs)
-            loss = criterion(outputs, targets)
-            loss.backward()
-            optimizer.step()
-            train_metrics.update('loss', loss.item())
-            for met in metric_ftns:
-                train_metrics.update(met.__name__, met(outputs, targets))
+        train_log = one_epoch(data_loader, criterion, model, device, metric_ftns, train_metrics, optimizer)
 
         valid_metrics.reset()
-        for i, data in enumerate(valid_data_loader, 0):
-            with torch.no_grad():
-                inputs, targets = data
-                inputs, targets = inputs.to(device), targets.to(device)
-
-                outputs = model(inputs)
-
-                loss = criterion(outputs, targets)
-                valid_metrics.update('loss', loss.item())
-                for met in metric_ftns:
-                    valid_metrics.update(met.__name__, met(outputs, targets))
+        with torch.no_grad():
+            val_log = one_epoch(valid_data_loader, criterion, model, device, metric_ftns, valid_metrics)
 
         if lr_scheduler is not None:
             lr_scheduler.step()
@@ -108,7 +84,28 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
             torch.save(state, filename)
 
             # log metrics, log in checkpoint in case actor dies half way
-            log = train_metrics.result()
-            val_log = valid_metrics.result()
-            log.update(**{'val_'+k : v for k, v in val_log.items()})
-            tune.report(**log)
+            train_log.update(**{'val_'+k : v for k, v in val_log.items()})
+            tune.report(**train_log)
+
+
+def one_epoch(data_loader, criterion, model, device, metric_ftns, metric_tracker: BatchMetrics, optimizer=None) -> dict:
+    for i, data in enumerate(data_loader, 0):
+        # get the inputs; data is a list of [inputs, labels]
+        inputs, targets = data
+        inputs, targets = inputs.to(device), targets.to(device)
+
+        if optimizer is not None:
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+        # forward + backward
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
+
+        if optimizer is not None:
+            loss.backward()
+            optimizer.step()
+        metric_tracker.update('loss', loss.item())
+        for met in metric_ftns:
+            metric_tracker.update(met.__name__, met(outputs, targets))
+    return metric_tracker.result()

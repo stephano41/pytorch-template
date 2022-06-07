@@ -7,10 +7,10 @@ loss:
   _target_: srcs.loss.nll_loss
 optimizer:
   _target_: torch.optim.Adam
-  lr: ${learning_rate}
-  weight_decay: ${weight_decay}
+  lr: 0.001
+  weight_decay: 0
   amsgrad: true
 lr_scheduler:
   _target_: torch.optim.lr_scheduler.StepLR
-  step_size: ${scheduler_step_size}
-  gamma: ${scheduler_gamma}
+  step_size: 50
+  gamma: 0.1
