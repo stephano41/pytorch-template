@@ -1,4 +1,3 @@
-log_dir: ${name}/
 checkpoint: ???
 
 metrics:
@@ -6,7 +5,11 @@ metrics:
   - _target_: srcs.metrics.top_k_acc
 
 defaults:
-  - dataset: mnist_test
+  - _self_
+  - data: mnist_test
 
-  - hydra/job_logging: custom
-  - hydra/run/dir: no_chdir
+  - override hydra/job_logging: custom
+
+hydra:
+  run:
+    dir: no_chdir

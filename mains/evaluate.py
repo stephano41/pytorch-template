@@ -9,6 +9,7 @@ from srcs.utils import instantiate
 
 logger = logging.getLogger('evaluate')
 
+# TODO make evaluate work
 
 @hydra.main(config_path='../conf', config_name='evaluate')
 def main(config):

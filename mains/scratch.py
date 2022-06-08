@@ -7,29 +7,21 @@ from utils import instantiate
 
 from ray.util.sgd.torch import TorchTrainer
 os.environ["HYDRA_FULL_ERROR"]="1"
+from hydra import initialize, compose
+from evaluate import main as m
 
-# from hydra.utils import instantiate
-from ray.tune.logger import pretty_print
-import ray.tune as tune
-
-search= OmegaConf.create(
-    [{"learning_rate": {"_target_": "ray.tune.loguniform", "_args_":[1e-4, 1e-2]}},
-    {"batch_size": {"_target_": "ray.tune.choice", "_args_":[[1e-4, 1e-2]]}},
-     {"metric": "val_accuracy"}]
-)
-
-cfg = OmegaConf.create([
-   {"_target_": "torch.nn.Linear", "in_features": 3, "out_features": 4},
-   {"_target_": "torch.nn.Linear", "in_features": 4, "out_features": 5},
-])
 
 @hydra.main(config_path='../conf/', config_name='tune')
 def main(config):
     # OmegaConf.resolve(config)
     # dummytrain(search, arch_cfg=config)
-    print(config)
-    OmegaConf.resolve(config)
-    print(config)
+    checkpoint_dir = os.path.join(hydra.utils.get_original_cwd(), "outputs/tune-MnistLeNet/2022-06-07-13-45-54/train_func_874109d9optimizerlr-0003378905971343519/checkpoint_000005/model_checkpoint.pth")
+
+    # with initialize(config_path='../conf'):
+    cfg = compose(config_name='evaluate', overrides=[f"checkpoint={checkpoint_dir}"], return_hydra_config=True)
+    OmegaConf.resolve(cfg)
+    print(cfg)
+    m.__wrapped__(cfg)
 
 
 def dummytrain(config, arch_cfg):
@@ -42,6 +34,7 @@ def dummytrain(config, arch_cfg):
 
 
 if __name__ == '__main__':
+
     main()
-    # print(search)
-    # print(instantiate(search))
+    # m.__wrapped__(loaded_config)
+    print("done")

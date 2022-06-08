@@ -8,7 +8,7 @@ from hydra.utils import to_absolute_path, get_original_cwd
 from numpy import inf
 
 from srcs.logger import TensorboardWriter, EpochMetrics
-from srcs.utils import write_conf
+from utils.files import write_conf
 
 logger = logging.getLogger('base-trainer')
 

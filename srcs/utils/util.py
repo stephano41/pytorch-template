@@ -1,14 +1,11 @@
 from functools import partial, update_wrapper
 from importlib import import_module
 from itertools import repeat
-from pathlib import Path
+
 import torch
 import numpy as np
 
 import hydra
-import yaml
-from omegaconf import OmegaConf
-import re
 
 
 def inf_loop(data_loader):
@@ -43,31 +40,9 @@ def instantiate(cfg, *args, is_func=False, **kwargs):
     return hydra.utils.instantiate(cfg, *args, **kwargs)
 
 
-def write_yaml(content, fname):
-    with fname.open('wt') as handle:
-        yaml.dump(content, handle, indent=2, sort_keys=False)
-
-
-def write_conf(config, save_path):
-    save_path = Path(save_path)
-    save_path.parent.mkdir(parents=True, exist_ok=True)
-    config_dict = OmegaConf.to_container(config, resolve=True)
-    write_yaml(config_dict, save_path)
-
-
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
 
-
-def trial_name(trial):
-    params = str(trial.evaluated_params)
-    name = str(trial)+params
-    # make it a valid file name
-    name = re.sub(r'[^\w\s-]', '', name.lower())
-    name = re.sub(r'[-\s]+', '-', name).strip('-_')
-    if len(name) > 50:
-        name = name[:50]
-    return name

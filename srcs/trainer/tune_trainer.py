@@ -4,7 +4,8 @@ from pathlib import Path
 
 from ray.tune.function_runner import StatusReporter
 
-from utils import instantiate, write_conf
+from utils import instantiate
+from utils.files import write_conf
 from ray import tune
 import torch
 from srcs.logger import BatchMetrics
@@ -75,7 +76,8 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
             'arch': type(model).__name__,
             'epoch': epoch,
             'state_dict': model.state_dict(),
-            "optimizer": optimizer.state_dict()
+            "optimizer": optimizer.state_dict(),
+            "config": arch_cfg
         }
 
         # create checkpoint

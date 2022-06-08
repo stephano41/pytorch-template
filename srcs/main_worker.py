@@ -1,7 +1,8 @@
 from omegaconf import OmegaConf
 
 from srcs.logger import Reporter
-from srcs.utils import instantiate, trial_name
+from srcs.utils import instantiate
+from utils.tune import trial_name
 import ray.tune as tune
 from pathlib import Path
 
