@@ -5,14 +5,16 @@ import torch
 from omegaconf import OmegaConf
 from tqdm import tqdm
 
+from logger import BatchMetrics
 from srcs.utils import instantiate
+from srcs.metrics.confusion_matrix import createConfusionMatrix
 
 logger = logging.getLogger('evaluate')
 
-# TODO make evaluate work
 
 @hydra.main(config_path='../conf', config_name='evaluate')
 def main(config):
+    logger.info("Test start")
     logger.info('Loading checkpoint: {} ...'.format(config.checkpoint))
     checkpoint = torch.load(config.checkpoint)
 
@@ -33,38 +35,39 @@ def main(config):
 
     # instantiate loss and metrics
     criterion = instantiate(loaded_config.loss, is_func=True)
-    metrics = [instantiate(met, is_func=True) for met in loaded_config.metrics]
+    metric_ftns = [instantiate(met, is_func=True) for met in loaded_config.metrics]
+    test_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
 
     # prepare model for testing
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     model.eval()
 
-    total_loss = 0.0
-    total_metrics = torch.zeros(len(metrics))
-
+    test_metrics.reset()
     with torch.no_grad():
-        for i, (data, target) in enumerate(tqdm(data_loader)):
-            data, target = data.to(device), target.to(device)
-            output = model(data)
+        all_preds = []
+        all_targets = []
+        for i, data in enumerate(tqdm(data_loader), 0):
+            # get the inputs; data is a list of [inputs, labels]
+            inputs, targets = data
+            inputs, targets = inputs.to(device), targets.to(device)
 
-            #
-            # save sample images, or do something with output here
-            #
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
 
-            # computing loss, metrics on test set
-            loss = criterion(output, target)
-            batch_size = data.shape[0]
-            total_loss += loss.item() * batch_size
-            for i, metric in enumerate(metrics):
-                total_metrics[i] += metric(output, target) * batch_size
+            _, preds = torch.max(outputs, dim=1)
+            all_preds.extend(preds.data.cpu().numpy())
+            all_targets.extend(targets.data.cpu().numpy())
 
-    n_samples = len(data_loader.sampler)
-    log = {'loss': total_loss / n_samples}
-    log.update({
-        met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metrics)
-    })
-    logger.info(log)
+            test_metrics.update('loss', loss.item())
+            for met in metric_ftns:
+                test_metrics.update(met.__name__, met(outputs, targets))
+
+    logger.info(test_metrics.result())
+
+    cm = createConfusionMatrix(all_targets, all_preds, fig_title="Test confusion matrix")
+    cm.savefig("Test confusion matrix.png")
+    cm.show()
 
 
 if __name__ == '__main__':

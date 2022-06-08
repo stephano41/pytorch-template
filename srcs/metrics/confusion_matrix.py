@@ -23,8 +23,8 @@ def plotConfusionMatrix(model, val_loader, classes, device=None, fig_size=(14, 1
     plt.show()
 
 
-def createConfusionMatrix(all_by, all_outputs, classes, fig_size=(14, 10), fig_title=None):
-    cm = confusion_matrix(all_by, all_outputs)
+def createConfusionMatrix(all_targets, all_preds, classes="auto", fig_size=(14, 10), fig_title=None):
+    cm = confusion_matrix(all_targets, all_preds)
 
     plt.figure(figsize=fig_size)
     s = sn.heatmap(cm, annot=True, fmt='g',xticklabels=classes, yticklabels=classes)

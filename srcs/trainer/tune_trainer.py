@@ -90,7 +90,8 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
             tune.report(**train_log)
 
 
-def one_epoch(data_loader, criterion, model, device, metric_ftns, metric_tracker: BatchMetrics, optimizer=None) -> dict:
+def one_epoch(data_loader, criterion, model, device, metric_ftns, metric_tracker: BatchMetrics,
+              optimizer=None) -> dict:
     for i, data in enumerate(data_loader, 0):
         # get the inputs; data is a list of [inputs, labels]
         inputs, targets = data
@@ -110,4 +111,5 @@ def one_epoch(data_loader, criterion, model, device, metric_ftns, metric_tracker
         metric_tracker.update('loss', loss.item())
         for met in metric_ftns:
             metric_tracker.update(met.__name__, met(outputs, targets))
+
     return metric_tracker.result()
