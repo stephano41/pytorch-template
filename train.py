@@ -5,7 +5,7 @@ import hydra
 import ray
 from hydra import compose
 from omegaconf import OmegaConf
-
+print(Path.cwd())
 from evaluate import main as evaluate_main
 from srcs.main_worker import main_worker
 from srcs.utils import set_seed
@@ -16,7 +16,7 @@ set_seed(123)
 logger = logging.getLogger('train')
 
 
-@hydra.main(config_path='../conf/', config_name='train')
+@hydra.main(config_path='conf/', config_name='train')
 def main(config):
     analysis = main_worker(config, logger)
 

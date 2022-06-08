@@ -1,5 +1,4 @@
 # @package _global_
-save_dir: models/
 resume:
 status: train
 n_gpu: 1

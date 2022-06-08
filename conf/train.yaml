@@ -1,5 +1,5 @@
-log_dir: logs/
 resume:
+restore:
 
 metrics:
   - _target_: srcs.metrics.accuracy
@@ -16,6 +16,10 @@ defaults:
   - status: train
 
   - override hydra/job_logging: custom
+
+trainer:
+  run:
+    restore: ${restore}
 
 hydra:
   run:

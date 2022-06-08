@@ -1,0 +1,6 @@
+_target_: sklearn.model_selection.GridSearchCV
+estimator: ${model}
+param_grid: ${search_space}
+scoring: accuracy
+cv: 5
+verbose: 2

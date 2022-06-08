@@ -16,12 +16,13 @@ set_seed(123)
 logger = logging.getLogger("tune")
 
 
-@hydra.main(config_path='../conf/', config_name='tune')
+@hydra.main(config_path='conf/', config_name='tune')
 def main(config):
     analysis = main_worker(config, logger)
 
     # TODO make resume work
-    # TODO clean up config structure
+    # TODO define-by-run to work
+    # TODO sklearn
     logger.info(analysis.best_config)
     best_trial = analysis.best_trial
     best_checkpoint_dir = Path(best_trial.checkpoint.value)
@@ -32,11 +33,9 @@ def main(config):
 
     # start test
     best_checkpoint_dir = hydra.utils.get_original_cwd() / best_checkpoint_dir / "model_checkpoint.pth"
-
     evaluate_cfg = compose(config_name='evaluate', overrides=[f"checkpoint={best_checkpoint_dir}"],
                            return_hydra_config=True)
     OmegaConf.resolve(evaluate_cfg)
-
     evaluate_main.__wrapped__(evaluate_cfg)
 
 

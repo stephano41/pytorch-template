@@ -5,9 +5,8 @@ from omegaconf import OmegaConf
 from ray import tune
 
 from srcs.logger import BatchMetrics
-from srcs.trainer.base import prepare_devices
-from utils import instantiate
-from utils.files import write_conf
+from srcs.utils import instantiate, prepare_devices
+from srcs.utils.files import write_conf
 
 
 def train_func(config, arch_cfg, checkpoint_dir=None):

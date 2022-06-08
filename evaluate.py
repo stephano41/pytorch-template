@@ -5,14 +5,15 @@ import torch
 from omegaconf import OmegaConf
 from tqdm import tqdm
 
-from logger import BatchMetrics
+from srcs.logger import BatchMetrics
 from srcs.metrics.confusion_matrix import createConfusionMatrix
 from srcs.utils import instantiate
+from matplotlib import pyplot as plt
 
 logger = logging.getLogger('evaluate')
 
 
-@hydra.main(config_path='../conf', config_name='evaluate')
+@hydra.main(config_path='conf', config_name='evaluate')
 def main(config):
     logger.info("Test start")
     logger.info('Loading checkpoint: {} ...'.format(config.checkpoint))
@@ -67,7 +68,7 @@ def main(config):
 
     cm = createConfusionMatrix(all_targets, all_preds, fig_title="Test confusion matrix")
     cm.savefig("Test confusion matrix.png")
-    cm.show()
+    plt.show()
 
 
 if __name__ == '__main__':

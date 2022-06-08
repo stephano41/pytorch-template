@@ -68,8 +68,6 @@ Simple project base template for PyTorch deep Learning project.
   │   │   ├── metric.py
   │   │   └── images.py
   │   ├── trainer               # customized class managing training process
-  │   │   ├── base.py
-  │   │   └── trainer.py
   │   ├── logger.py             # tensorboard, train / validation metric logging
   │   └── utils
   │       └── util.py
