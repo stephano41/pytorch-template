@@ -1,13 +1,12 @@
-import hydra
 import os
-import logging
 
+import hydra
 from omegaconf import OmegaConf
+
 from utils import instantiate
 
-from ray.util.sgd.torch import TorchTrainer
-os.environ["HYDRA_FULL_ERROR"]="1"
-from hydra import initialize, compose
+os.environ["HYDRA_FULL_ERROR"] = "1"
+from hydra import compose
 from evaluate import main as m
 
 
@@ -15,7 +14,8 @@ from evaluate import main as m
 def main(config):
     # OmegaConf.resolve(config)
     # dummytrain(search, arch_cfg=config)
-    checkpoint_dir = os.path.join(hydra.utils.get_original_cwd(), "outputs/tune-MnistLeNet/2022-06-07-13-45-54/train_func_874109d9optimizerlr-0003378905971343519/checkpoint_000005/model_checkpoint.pth")
+    checkpoint_dir = os.path.join(hydra.utils.get_original_cwd(),
+                                  "outputs/tune-MnistLeNet/2022-06-07-13-45-54/train_func_874109d9optimizerlr-0003378905971343519/checkpoint_000005/model_checkpoint.pth")
 
     # with initialize(config_path='../conf'):
     cfg = compose(config_name='evaluate', overrides=[f"checkpoint={checkpoint_dir}"], return_hydra_config=True)
@@ -34,7 +34,6 @@ def dummytrain(config, arch_cfg):
 
 
 if __name__ == '__main__':
-
     main()
     # m.__wrapped__(loaded_config)
     print("done")

@@ -1,7 +1,7 @@
+import numpy as np
 import torch
 from scipy.stats import gmean
 from sklearn.metrics import recall_score, precision_score, f1_score
-import numpy as np
 
 
 def accuracy(output, target):

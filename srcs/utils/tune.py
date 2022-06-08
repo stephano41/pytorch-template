@@ -3,7 +3,7 @@ import re
 
 def trial_name(trial):
     params = str(trial.evaluated_params)
-    name = str(trial)+params
+    name = str(trial) + params
     # make it a valid file name
     name = re.sub(r'[^\w\s-]', '', name.lower())
     name = re.sub(r'[-\s]+', '-', name).strip('-_')

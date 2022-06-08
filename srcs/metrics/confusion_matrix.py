@@ -27,7 +27,7 @@ def createConfusionMatrix(all_targets, all_preds, classes="auto", fig_size=(14, 
     cm = confusion_matrix(all_targets, all_preds)
 
     plt.figure(figsize=fig_size)
-    s = sn.heatmap(cm, annot=True, fmt='g',xticklabels=classes, yticklabels=classes)
+    s = sn.heatmap(cm, annot=True, fmt='g', xticklabels=classes, yticklabels=classes)
     if fig_title is not None:
         plt.suptitle(fig_title)
     s.set(xlabel='Predicted Labels', ylabel='True Labels')

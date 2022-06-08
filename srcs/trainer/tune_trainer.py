@@ -1,18 +1,13 @@
-import os
-import logging
 from pathlib import Path
 
-from ray.tune.function_runner import StatusReporter
-
-from utils import instantiate
-from utils.files import write_conf
-from ray import tune
 import torch
+from omegaconf import OmegaConf
+from ray import tune
+
 from srcs.logger import BatchMetrics
 from srcs.trainer.base import prepare_devices
-
-from omegaconf import OmegaConf
-
+from utils import instantiate
+from utils.files import write_conf
 
 
 def train_func(config, arch_cfg, checkpoint_dir=None):
@@ -49,13 +44,13 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
         lr_scheduler = instantiate(arch_cfg.lr_scheduler, optimizer)
 
     # later changed if checkpoint
-    start_epoch=0
+    start_epoch = 0
 
     if checkpoint_dir:
         checkpoint = torch.load(checkpoint_dir)
         model.load_state_dict(checkpoint['state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
-        start_epoch=checkpoint["epoch"]+1
+        start_epoch = checkpoint["epoch"] + 1
 
     metric_ftns = [instantiate(met, is_func=True) for met in arch_cfg.metrics]
     train_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
@@ -86,7 +81,7 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
             torch.save(state, filename)
 
             # log metrics, log in checkpoint in case actor dies half way
-            train_log.update(**{'val_'+k : v for k, v in val_log.items()})
+            train_log.update(**{'val_' + k: v for k, v in val_log.items()})
             tune.report(**train_log)
 
 

@@ -6,8 +6,8 @@ from omegaconf import OmegaConf
 from tqdm import tqdm
 
 from logger import BatchMetrics
-from srcs.utils import instantiate
 from srcs.metrics.confusion_matrix import createConfusionMatrix
+from srcs.utils import instantiate
 
 logger = logging.getLogger('evaluate')
 

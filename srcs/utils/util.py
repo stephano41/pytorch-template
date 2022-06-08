@@ -2,10 +2,9 @@ from functools import partial, update_wrapper
 from importlib import import_module
 from itertools import repeat
 
-import torch
-import numpy as np
-
 import hydra
+import numpy as np
+import torch
 
 
 def inf_loop(data_loader):
@@ -45,4 +44,3 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
-

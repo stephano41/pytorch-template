@@ -123,8 +123,8 @@ class BaseTrainer(metaclass=ABCMeta):
         arch = type(self.model).__name__
         filename = str(self.checkpt_dir / 'checkpoint-epoch{}.pth'.format(epoch))
         save_checkpoint(filename, arch, epoch, self.model.state_dict(), self.optimizer.state_dict(),
-                                self.config,
-                                epoch_metrics=self.ep_metrics)
+                        self.config,
+                        epoch_metrics=self.ep_metrics)
 
         cwd = Path.cwd().relative_to(get_original_cwd())
         logger.info(f"Model checkpoint saved at: \n    {cwd}/{filename}")

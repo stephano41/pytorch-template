@@ -163,8 +163,9 @@ class Reporter(CLIReporter):
     """
     wrapper class around CLIReporter to incorporate python logging module
     """
+
     def __init__(self, logger, *args, **kwargs):
-        self.logger=logger
+        self.logger = logger
         super(Reporter, self).__init__(*args, **kwargs)
 
     def report(self, trials, done: bool, *sys_info):
