@@ -41,36 +41,52 @@ Simple project base template for PyTorch deep Learning project.
 * PyTorch >= 1.2
 * tensorboard >= 1.14 (see [Tensorboard Visualization](#tensorboard-visualization))
 * tqdm
-* hydra-core >= 1.0.3
+* hydra-core >= 1.2
+* optuna
+* ray
+* scikit-learn
 
 ### Features
 
 * Simple and clear directory structure, suitable for most of deep learning projects.
 * Hierarchical management of project configurations with [Hydra](https://hydra.cc/docs/intro).
 * Advanced logging and monitoring for validation metrics. Automatic handling of model checkpoints.
-* **Note**: This repository is detached
-  from [victorisque/pytorch-template](https://github.com/victoresque/pytorch-template), in order to introduce advanced
-  features rapidly without concerning much for backward compatibility.
+* Hyperparameter search implementation with ray tune
 
 ### Folder Structure
 
 ```yaml
   pytorch-template/
-  ├── train.py                  # main script to start training.
+  ├── train.py                  # script to start training.
   ├── evaluate.py               # script to evaluate trained model on testset.
+  ├── tune.py                   # script to start hyperparameter tuning
+  ├── sk_trainer.py             # script to train/tune sk_train models 
   ├── conf # config files. explained in separated section below.
   │   └── ...
   ├── srcs # source code.
   │   ├── data_loader           # data loading, preprocessing
+  │   │   ├── __init__.py
   │   │   └── mnist_data_loaders.py
-  │   ├── model
-  │   │   ├── loss.py
-  │   │   ├── metric.py
+  │   ├── models
+  │   │   ├── __init__.py
   │   │   └── images.py
-  │   ├── trainer               # customized class managing training process
+  │   ├── loss
+  │   │   ├── __init__.py
+  │   │   └── loss.py
+  │   ├── metrics
+  │   │   ├── __init__.py
+  │   │   ├── confusion_matrix.py
+  │   │   └── metric.py
+  │   ├── utils
+  │   │   ├── __init__.py
+  │   │   ├── files.py
+  │   │   ├── tune.py
+  │   │   ├── util.py
+  │   ├── trainer
+  │   │   ├── __init__.py
+  │   │   └── tune_trainer.py
+  │   ├── main_worker.py        # customized class managing training process
   │   ├── logger.py             # tensorboard, train / validation metric logging
-  │   └── utils
-  │       └── util.py
   ├── new_project.py            # script to initialize new project
   ├── requirements.txt
   ├── README.md
@@ -101,23 +117,34 @@ Check [Hydra documentation](https://hydra.cc/), for more information.
   conf/ # hierarchical, structured config files to be used with 'Hydra' framework
   ├── train.yaml                # main config file used for train.py
   ├── evaluate.yaml             # main config file used for evaluate.py
-  ├── hparams                   # define global hyper-parameters
-  │   └── lenet_baseline.yaml
-  ├── data
+  ├── tune.yaml                 # main config file used for tune.py
+  ├── sk_train.yaml             # main config file used for sk_trainer.py
+  ├── data_loader
   │   ├── mnist_test.yaml
   │   └── mnist_train.yaml
   ├── model                     # select NN architecture to train
+  │   ├── svm.yaml              # for sk_trainer.py
   │   └── mnist_lenet.yaml
+  ├── search_alg                     
+  │   ├── optuna.yaml             
+  │   └── sk_grid_search.yaml
+  ├── search_space                   
+  │   ├── lenet_search.yaml              
+  │   └── svm_search.yaml
   ├── status                    # set train/debug mode.
-  │   ├── debug.yaml            #   debug mode runs faster, and don't use tensorboard
+  │   ├── debug.yaml
+  │   ├── tune.yaml             #   tune mode is default with full logging
   │   └── train.yaml            #   train mode is default with full logging
+  ├── trainer                            
+  │   └── torch_trainer.yaml
+  ├── tune_scheduler                            
+  │   └── ASHAScheduler.yaml
   │
   └── hydra                     # configure hydra framework
       ├── job_logging           #   config for python logging module
       │   └── custom.yaml
       └── run/dir               #   setup working directory
-          ├── job_timestamp.yaml
-          └── no_chdir.yaml
+          └── job_timestamp.yaml
 ```
 
 ### Using config files
@@ -136,16 +163,6 @@ name: MnistLeNet # experiment name.
 save_dir: models/
 log_dir: ${name}/
 resume:
-
-# Global hyper-parameters defined in conf/hparams/
-#   you can change the values by either editing yaml file directly,
-#   or using command line arguments, like `python3 train.py batch_size=128`
-batch_size: 256
-learning_rate: 0.001
-weight_decay: 0
-scheduler_step_size: 50
-scheduler_gamma: 0.1
-
 
 # configuration for data loading.
 data_loader:
@@ -188,16 +205,6 @@ trainer:
 
 Add addional configurations if you need.
 
-`conf/hparams/lenet_baseline.yaml` contains
-
-```yaml
-batch_size: 256
-learning_rate: 0.001
-weight_decay: 0
-scheduler_step_size: 50
-scheduler_gamma: 0.1
-```
-
 Those config items containing `_target_` are designed to be used with `instantiate` function of Hydra. For example, When
 your config looks like
 
@@ -225,7 +232,7 @@ example_object = definition(arg1=1, arg2='example')
 
 This feature is especially useful, when you switch between multiple models with same interface(input, output), like
 choosing ResNet or MobileNet for CNN backbone of detection model. You can change architecture by simply using different
-config file, even not needing to importing both in code.
+config file, not even needing to importing both in code.
 
 ### Checkpoints
 
@@ -233,15 +240,24 @@ config file, even not needing to importing both in code.
 # new directory with timestamp will be created automatically.
 # if you enable debug mode by status=debug either in command line or main config,
 # checkpoints will be saved under separate directory `outputs/debug`.
-outputs/train/2020-07-29/12-44-37/
-├── config.yaml # composed config file
-├── epoch-results.csv # epoch-wise evaluation metrics
-├── MnistLeNet/ # tensorboard log file
-├── model
-│   ├── checkpoint-epoch1.pth
-│   ├── checkpoint-epoch2.pth
+outputs/train-!{name}/2020-07-29-12-44-37/
+├── basic-variant-state-2020-07-29-12-44-37.json # ray tune files
+├── experiment_state-2020-07-29-12-44-37.json # ray tune files
+├── .hydra
+│   ├── config.yaml # composed config file
+│   ├── hydra.yaml
+│   └── overrides.yaml 
+├── train_func_{trial_id}
+│   ├── checkpoint_000000
+│   ├── checkpoint_000001
 │   ├── ...
-│   ├── model_best.pth # checkpoint with best score
+│   ├── checkpoint_000014 # last checkpoint
+│   ├── config.yaml # contains final config used to build trial after ray selects hyperparamters 
+│   ├── # tensorboard log file
+│   ├── params.json # used for ray tune hyperparameter tuning 
+│   ├── params.pkl
+│   ├── progress.csv
+│   ├── result.json
 │   └── model_latest.pth # checkpoint which is saved last
 └── train.log
 ```
@@ -284,43 +300,15 @@ Please refer to `data_loader/data_loaders.py` for an MNIST data loading example.
 
 * **Writing your own trainer**
 
-1. **Inherit ```BaseTrainer```**
-
-   `BaseTrainer` handles:
-    * Training process logging
-    * Checkpoint saving
-    * Checkpoint resuming
-    * Reconfigurable performance monitoring for saving current best model, and early stop training.
-        * If config `monitor` is set to `max val_accuracy`, which means then the trainer will save a
-          checkpoint `model_best.pth` when `validation accuracy` of epoch replaces current `maximum`.
-        * If config `early_stop` is set, training will be automatically terminated when model performance does not
-          improve for given number of epochs. This feature can be turned off by passing 0 to the `early_stop` option, or
-          just deleting the line of config.
-
-2. **Implementing abstract methods**
-
-   You need to implement `_train_epoch()` for your training process, if you need validation then you can
-   implement `_valid_epoch()` as in `trainer/trainer.py`
-
-* **Example**
-
-  Please refer to `trainer/trainer.py` for MNIST training.
-
-* **Iteration-based training**
-
-  `Trainer.__init__` takes an optional argument, `len_epoch` which controls number of batches(steps) in each epoch.
+See ray tune [trainable documentation](https://docs.ray.io/en/latest/tune/api_docs/trainable.html)
 
 ### Model
 
 * **Writing your own model**
 
-<!-- deprecated -->
+Write it just like any other pytorch model:
 
-1. **Inherit `BaseModel`**
-
-   `BaseModel` handles:
-    * Inherited from `torch.nn.Module`
-    * `__str__`: Modify native `print` function to prints the number of trainable parameters.
+1. **Inherit `nn.Module`**
 
 2. **Implementing abstract methods**
 
@@ -328,7 +316,7 @@ Please refer to `data_loader/data_loaders.py` for an MNIST data loading example.
 
 * **Example**
 
-  Please refer to `model/model.py` for a LeNet example.
+  Please refer to `models/images.py` for a LeNet example.
 
 ### Loss
 
@@ -339,45 +327,34 @@ file, to corresponding name.
 
 Metric functions are located in 'model/metric.py'.
 
-You can monitor multiple metrics by providing a list in the configuration file, e.g.:
+You can monitor multiple metrics by providing a list in the configuration file trainer.run.metric, e.g.:
 
   ```yaml
-  "metrics": ["accuracy", "top_k_acc"],
-  ```
-
-### Additional logging
-
-If you have additional information to be logged, in `_train_epoch()` of your trainer class, merge them with `log` as
-shown below before returning:
-
-  ```python
-  additional_log = {"gradient_norm": g, "sensitivity": s}
-  log.update(additional_log)
-  return log
+run:
+    metric: [accuracy, top_k_acc],
   ```
 
 ### Testing
 
-You can test trained model by running `test.py` passing path to the trained checkpoint by `--resume` argument.
+You can test trained model by running `test.py` passing path to the trained checkpoint by `--checkpoint_dir` and `--checkpoint_name` argument.
 
 ### Validation data
 
 To split validation data from a data loader, call `BaseDataLoader.split_validation()`, then it will return a data loader
-for validation of size specified in your config file. The `validation_split` can be a ratio of validation set per total
-data(0.0 <= float < 1.0), or the number of samples (0 <= int < `n_total_samples`).
+for validation of size specified in your config file. The `validation_split` is the ratio of validation set per total
+data(0.0 <= float < 1.0).
 
 **Note**: the `split_validation()` method will modify the original data loader
-**Note**: `split_validation()` will return `None` if `"validation_split"` is set to `0`
 
 ### Checkpoints
 
 You can specify the name of the training session in config files:
 
   ```yaml
-  "name": "MNIST_LeNet",
+  name: MNIST_LeNet,
   ```
 
-The checkpoints will be saved in `save_dir/name/timestamp/checkpoint_epoch_n`, with timestamp in mmdd_HHMMSS format.
+The checkpoints will be saved in `save_dir/state-name/timestamp/train_func_trial_id/checkpoint_epoch_n`, with timestamp in Y-m-d-H-M-S format.
 
 A copy of config file will be saved in the same folder.
 
@@ -387,37 +364,21 @@ A copy of config file will be saved in the same folder.
   {
     'arch': arch,
     'epoch': epoch,
-    'state_dict': self.model.state_dict(),
-    'optimizer': self.optimizer.state_dict(),
-    'epoch_metrics': self.ep_metrics,
-    'config': self.config
+    'state_dict': model.state_dict(),
+    'optimizer': optimizer.state_dict(),
+    'config': arch_cfg # full config file to create this trial
   }
   ```
 
 ### Tensorboard Visualization
 
-This template supports Tensorboard visualization with `torch.utils.tensorboard`.
+This template supports Tensorboard visualization with ray tune
 
-1. **Run training**
-
-   Make sure that `tensorboard` option in the config file is turned on.
-
-    ```
-     "tensorboard" : true
-    ```
-
-2. **Open Tensorboard server**
+1. **Open Tensorboard server**
 
    Type `tensorboard --logdir outputs/train/` at the project root, then server will open at `http://localhost:6006`
 
-By default, values of loss and metrics specified in config file, input images, and histogram of model parameters will be
-logged. If you need more visualizations, use `add_scalar('tag', data)`, `add_image('tag', image)`, etc in
-the `trainer._train_epoch` method.
-`add_something()` methods in this template are basically wrappers for those of `tensorboardX.SummaryWriter`
-and `torch.utils.tensorboard.SummaryWriter` modules.
-
-**Note**: You don't have to specify current steps, since `WriterTensorboard` class defined at `srcs.logger.py` will
-track current steps.
+By default, values of loss and metrics specified in config file and model parameters will be logged. 
 
 ## Contribution
 
