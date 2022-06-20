@@ -4,4 +4,4 @@ status: debug
 
 n_gpu: 1
 n_cpu: 8
-num_workers: 8
+num_workers: 4

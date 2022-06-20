@@ -1,15 +1,16 @@
-checkpoint: ???
+checkpoint_dir: ???
+checkpoint_name: ???
 
 metrics:
   - _target_: srcs.metrics.accuracy
   - _target_: srcs.metrics.top_k_acc
 
 defaults:
-  - _self_
-  - data: mnist_test
-
+  - data_loader: mnist_test
   - override hydra/job_logging: custom
+
+  - _self_
 
 hydra:
   run:
-    dir: no_chdir
+    dir: ${checkpoint_dir}/../../test-${now:%Y-%m-%d}-${now:%H-%M-%S}

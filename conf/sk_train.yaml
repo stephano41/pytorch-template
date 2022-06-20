@@ -1,7 +1,7 @@
 name: test
 
 defaults:
-  - _self_
+
   - status: train
   - data/mnist_train@train_data
   - data/mnist_test@test_data
@@ -9,9 +9,6 @@ defaults:
   - search_space: svm_search
   - search_alg: sk_grid_search
 
+  - hydra/run/dir: job_timestamp
   - override hydra/job_logging: custom
-
-
-hydra:
-  run:
-    dir: ./outputs/${status}-${name}/${now:%Y-%m-%d}-${now:%H-%M-%S}
+  - _self_

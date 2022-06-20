@@ -5,7 +5,6 @@ import hydra
 import ray
 from hydra import compose
 from omegaconf import OmegaConf
-print(Path.cwd())
 from evaluate import main as evaluate_main
 from srcs.main_worker import main_worker
 from srcs.utils import set_seed

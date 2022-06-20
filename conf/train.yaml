@@ -7,20 +7,19 @@ metrics:
   - _target_: srcs.metrics.g_score
 
 defaults:
-  - _self_
-  - data: mnist_train
+
+  - data_loader: mnist_train
   - model: mnist_lenet
   - tune_scheduler: ASHAScheduler
   - trainer: torch_trainer
 
   - status: train
 
+  - hydra/run/dir: job_timestamp
   - override hydra/job_logging: custom
+  - _self_
 
 trainer:
   run:
     restore: ${restore}
 
-hydra:
-  run:
-    dir: ./outputs/${status}-${name}/${now:%Y-%m-%d}-${now:%H-%M-%S}
