@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import torch
@@ -6,41 +7,47 @@ from ray import tune
 
 from srcs.logger import BatchMetrics
 from srcs.utils import instantiate, prepare_devices
-from srcs.utils.files import write_conf
+from srcs.utils.files import write_conf, change_directory
 
 
 def train_func(config, arch_cfg, checkpoint_dir=None):
     # os.chdir(get_original_cwd())
     # cwd is changed to the trial folder
+    project_dir = os.getenv('TUNE_ORIG_WORKING_DIR')
 
     config = OmegaConf.create(config)
     arch_cfg = OmegaConf.merge(arch_cfg, config)
     write_conf(arch_cfg, "config.yaml")
 
-    device, device_ids = prepare_devices(arch_cfg.n_gpu)
+    with change_directory(project_dir):
+        device, device_ids = prepare_devices(arch_cfg.n_gpu)
 
-    # setup dataloaders
-    data_loader, valid_data_loader = instantiate(arch_cfg.data_loader)
+        # setup dataloaders
+        data_loader, valid_data_loader = instantiate(arch_cfg.data_loader)
 
-    # logger=logging.getLogger('tune')
-    # setup model
-    model = instantiate(arch_cfg.arch)
+        # logger=logging.getLogger('tune')
+        # setup model
+        model = instantiate(arch_cfg.arch)
 
-    # trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    # logger.info(f'Trainable parameters: {sum([p.numel() for p in trainable_params])}')
+        # trainable_params = filter(lambda p: p.requires_grad, model.parameters())
+        # logger.info(f'Trainable parameters: {sum([p.numel() for p in trainable_params])}')
 
-    model = model.to(device)
+        model = model.to(device)
 
-    if len(device_ids) > 1:
-        model = torch.nn.DataParallel(model, device_ids=device_ids)
+        if len(device_ids) > 1:
+            model = torch.nn.DataParallel(model, device_ids=device_ids)
 
-    criterion = instantiate(arch_cfg.loss, is_func=True)
+        criterion = instantiate(arch_cfg.loss, is_func=True)
 
-    optimizer = instantiate(arch_cfg.optimizer, model.parameters())
+        optimizer = instantiate(arch_cfg.optimizer, model.parameters())
 
-    lr_scheduler = None
-    if "lr_scheduler" in arch_cfg:
-        lr_scheduler = instantiate(arch_cfg.lr_scheduler, optimizer)
+        lr_scheduler = None
+        if "lr_scheduler" in arch_cfg:
+            lr_scheduler = instantiate(arch_cfg.lr_scheduler, optimizer)
+
+        metric_ftns = [instantiate(met, is_func=True) for met in arch_cfg.metrics]
+        train_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
+        valid_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
 
     # later changed if checkpoint
     start_epoch = 0
@@ -50,10 +57,6 @@ def train_func(config, arch_cfg, checkpoint_dir=None):
         model.load_state_dict(checkpoint['state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
         start_epoch = checkpoint["epoch"] + 1
-
-    metric_ftns = [instantiate(met, is_func=True) for met in arch_cfg.metrics]
-    train_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
-    valid_metrics = BatchMetrics('loss', *[m.__name__ for m in metric_ftns])
 
     for epoch in range(start_epoch, arch_cfg.trainer.epochs):  # loop over the dataset multiple times
         train_metrics.reset()

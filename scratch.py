@@ -10,7 +10,7 @@ from hydra import compose
 from evaluate import main as m
 
 
-@hydra.main(config_path='conf/', config_name='tune')
+@hydra.main(config_path='conf/', config_name='tune', version_base='1.2')
 def main(config):
     print(config)
 

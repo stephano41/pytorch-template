@@ -16,20 +16,25 @@ set_seed(123)
 logger = logging.getLogger('train')
 
 
-@hydra.main(config_path='conf/', config_name='train')
+@hydra.main(config_path='conf/', config_name='train', version_base='1.2')
 def main(config):
-    analysis = main_worker(config, logger)
+    output_dir = Path(hydra.utils.HydraConfig.get().run.dir)
 
-    logger.info("\n".join("{}\t{}".format(k, v) for k, v in analysis.best_result.items()))
+    analysis = main_worker(config, output_dir, logger)
 
-    best_checkpoint_dir = hydra.utils.get_original_cwd() / Path(
-        analysis.best_trial.checkpoint.value) / "model_checkpoint.pth"
+    logger.info("\n".join(f"{k}\t{v}" for k, v in analysis.best_result.items()))
 
-    evaluate_cfg = compose(config_name='evaluate', overrides=[f"checkpoint={best_checkpoint_dir}"],
-                           return_hydra_config=True)
+    best_checkpoint_dir = analysis.best_trial.checkpoint.value
+
+    overrides = [f"checkpoint_dir={best_checkpoint_dir}",
+                 "checkpoint_name=model_checkpoint.pth",
+                 f"hydra.run.dir={str(output_dir)}/test-{analysis.best_trial.trial_id}"
+                 ]
+
+    evaluate_cfg = compose(config_name='evaluate', overrides=overrides, return_hydra_config=True)
     OmegaConf.resolve(evaluate_cfg)
 
-    evaluate_main.__wrapped__(evaluate_cfg)
+    evaluate_main.__wrapped__(evaluate_cfg, cm_title=f'{analysis.best_trial.trial_id} Confusion Matrix')
 
 
 if __name__ == '__main__':

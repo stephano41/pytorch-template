@@ -1,3 +1,4 @@
+import contextlib
 from pathlib import Path
 
 import yaml
@@ -14,3 +15,14 @@ def write_conf(config, save_path):
     save_path.parent.mkdir(parents=True, exist_ok=True)
     config_dict = OmegaConf.to_container(config, resolve=True)
     write_yaml(config_dict, save_path)
+
+
+@contextlib.contextmanager
+def change_directory(path):
+    """Changes working directory and returns to previous on exit."""
+    prev_cwd = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(prev_cwd)

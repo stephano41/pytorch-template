@@ -16,27 +16,31 @@ set_seed(123)
 logger = logging.getLogger("tune")
 
 
-@hydra.main(config_path='conf/', config_name='tune')
+@hydra.main(config_path='conf/', config_name='tune', version_base='1.2')
 def main(config):
-    analysis = main_worker(config, logger)
+    output_dir = Path(hydra.utils.HydraConfig.get().run.dir)
+
+    analysis = main_worker(config, output_dir)
 
     # TODO make resume work
     # TODO define-by-run to work
-    # TODO sklearn
     logger.info(analysis.best_config)
     best_trial = analysis.best_trial
     best_checkpoint_dir = Path(best_trial.checkpoint.value)
 
-    logger.info("Best trial location: {}".format(best_checkpoint_dir))
-    logger.info("Best trial params: {}".format(best_trial.evaluated_params))
-    logger.info("\n".join("{}\t{}".format(k, v) for k, v in analysis.best_result.items()))
+    logger.info(f"Best trial location: {best_checkpoint_dir}")
+    logger.info(f"Best trial params: {best_trial.evaluated_params}")
+    logger.info("\n".join(f"{k}\t{v}" for k, v in analysis.best_result.items()))
 
     # start test
-    best_checkpoint_dir = hydra.utils.get_original_cwd() / best_checkpoint_dir / "model_checkpoint.pth"
-    evaluate_cfg = compose(config_name='evaluate', overrides=[f"checkpoint={best_checkpoint_dir}"],
+    overrides = [f"checkpoint_dir={best_checkpoint_dir}",
+                 "checkpoint_name=model_checkpoint.pth",
+                 f"hydra.run.dir={str(output_dir)}/test-{best_trial.trial_id}"]
+
+    evaluate_cfg = compose(config_name='evaluate', overrides=overrides,
                            return_hydra_config=True)
     OmegaConf.resolve(evaluate_cfg)
-    evaluate_main.__wrapped__(evaluate_cfg)
+    evaluate_main.__wrapped__(evaluate_cfg, cm_title=f'{best_trial.trial_id} Confusion Matrix')
 
 
 if __name__ == '__main__':

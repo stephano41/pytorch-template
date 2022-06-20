@@ -29,7 +29,7 @@ def analyse(model, x, y, title, categories, logger, save_dir=None):
     logger.info(classification_report(y, y_pred, target_names=categories))
 
 
-@hydra.main(config_path='conf/', config_name='sk_train')
+@hydra.main(config_path='conf/', config_name='sk_train', version_base='1.2')
 def main(config):
     data_loader, valid_loader = instantiate(config.train_data)
     test_loader = instantiate(config.test_data)
