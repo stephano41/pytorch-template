@@ -3,7 +3,8 @@ channels:
   - pytorch
   - conda-forge
 dependencies:
-  - cudatoolkit=11.3
+  - python=3.9
+  - cudatoolkit=11.7
   - pytorch::torchaudio
   - pytorch::pytorch
   - pytorch::torchvision
@@ -18,9 +19,13 @@ dependencies:
   - tensorboard
   - tensorboardx
   - pywavelets
+  - pytest
   - pip
   - pip:
       - ray
       - hydra-core
+      - wandb
+      - plotly
+      - mlxtend
 # May be necessary to pip remove torch packages and reinstall them using pip according to
 # https://discuss.pytorch.org/t/trouble-installing-torch-with-cuda-using-conda-on-wsl2/136911/3
