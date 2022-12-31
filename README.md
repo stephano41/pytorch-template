@@ -63,7 +63,7 @@ Simple project base template for PyTorch deep Learning project.
   ├── sk_trainer.py             # script to train/tune sk_train models 
   ├── conf # config files. explained in separated section below.
   │   └── ...
-  ├── srcs # source code.
+  ├── src # source code.
   │   ├── data_loader           # data loading, preprocessing
   │   │   ├── __init__.py
   │   │   └── mnist_data_loaders.py
@@ -166,7 +166,7 @@ resume:
 
 # configuration for data loading.
 data_loader:
-  _target_: srcs.data_loader.data_loaders.get_data_loaders
+  _target_: src.data_loader.data_loaders.get_data_loaders
   data_dir: data/
   batch_size: ${batch_size}
   shuffle: true
@@ -174,10 +174,10 @@ data_loader:
   num_workers: ${n_cpu}
 
 arch:
-  _target_: srcs.model.model.MnistModel
+  _target_: src.model.model.MnistModel
   num_classes: 10
 loss:
-  _target_: srcs.model.loss.nll_loss
+  _target_: src.model.loss.nll_loss
 optimizer:
   _target_: torch.optim.Adam
   lr: ${learning_rate}
@@ -189,8 +189,8 @@ lr_scheduler:
   gamma: ${scheduler_gamma}
 
 metrics:
-- _target_: srcs.model.metric.accuracy
-- _target_: srcs.model.metric.top_k_acc
+- _target_: src.model.metric.accuracy
+- _target_: src.model.metric.top_k_acc
 
 n_gpu: 1
 n_cpu: 8

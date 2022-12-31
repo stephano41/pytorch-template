@@ -4,9 +4,9 @@ import ray.tune as tune
 from omegaconf import OmegaConf
 from ray.tune import CLIReporter
 
-from srcs.logger import Reporter
-from srcs.utils import instantiate
-from srcs.utils.tune import trial_name
+from src.logger import Reporter
+from src.utils import instantiate
+from src.utils.tune import trial_name
 
 
 def main_worker(config, output_dir, logger=None):

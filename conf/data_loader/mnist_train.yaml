@@ -1,5 +1,5 @@
 # @package data_loader
-_target_: srcs.data_loader.get_data_loaders
+_target_: src.data_loader.get_data_loaders
 data_dir: ./data/
 batch_size: 256
 shuffle: true

@@ -7,9 +7,9 @@ import torch
 from omegaconf import OmegaConf
 from tqdm import tqdm
 
-from srcs.logger import BatchMetrics
-from srcs.metrics.confusion_matrix import createConfusionMatrix
-from srcs.utils import instantiate
+from src.logger import BatchMetrics
+from src.metrics.confusion_matrix import createConfusionMatrix
+from src.utils import instantiate
 from matplotlib import pyplot as plt
 
 logger = logging.getLogger('evaluate')

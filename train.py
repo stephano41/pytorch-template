@@ -6,8 +6,8 @@ import ray
 from hydra import compose
 from omegaconf import OmegaConf
 from evaluate import main as evaluate_main
-from srcs.main_worker import main_worker
-from srcs.utils import set_seed
+from src.main_worker import main_worker
+from src.utils import set_seed
 
 # fix random seeds for reproducibility
 set_seed(123)

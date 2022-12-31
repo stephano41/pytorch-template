@@ -2,9 +2,9 @@ resume:
 restore:
 
 metrics:
-  - _target_: srcs.metrics.accuracy
-  - _target_: srcs.metrics.f1
-  - _target_: srcs.metrics.g_score
+  - _target_: src.metrics.accuracy
+  - _target_: src.metrics.f1
+  - _target_: src.metrics.g_score
 
 defaults:
 

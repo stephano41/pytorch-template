@@ -5,9 +5,9 @@ import torch
 from omegaconf import OmegaConf
 from ray import tune
 
-from srcs.logger import BatchMetrics
-from srcs.utils import instantiate, prepare_devices
-from srcs.utils.files import write_conf, change_directory
+from src.logger import BatchMetrics
+from src.utils import instantiate, prepare_devices
+from src.utils.files import write_conf, change_directory
 
 
 def train_func(config, arch_cfg, checkpoint_dir=None):
