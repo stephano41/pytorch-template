@@ -1,29 +1,22 @@
-resume:
+# resumes entire experiment, need to have almost exact same setting as before
+# resume should be the folder name of the experiment (the one in date, time)
+defaults:
+  - dataset: preprocessed
+  - pipelines: pt_tune
+  - hydra/run/dir: job_timestamp
+  - _self_
+  - optional local_env: env
+  - override hydra/job_logging: custom
+
+monitor: f1_macro
+mode: max
+resume: null
+name: only_check_end_of_cv
+status: tune
+output_root: ./outputs
+seed: 122
 
 metrics:
-  - _target_: src.metrics.accuracy
-  - _target_: src.metrics.f1
-  - _target_: src.metrics.g_score
-
-defaults:
-  - data_loader: mnist_train
-  - model: mnist_lenet
-  - tune_scheduler: ASHAScheduler
-  - trainer: torch_trainer
-
-  - status: tune
-  - search_alg: optuna
-  - search_space: lenet_search
-
-  - hydra/run/dir: job_timestamp
-  - override hydra/job_logging: custom
-  - _self_
-
-trainer:
-  run:
-    raise_on_failed_trial: false
-    num_samples: 6
-    config: ${search_space}
-    search_alg: ${search_alg}
-    metric: val_f1
-
+  - accuracy
+  - f1_macro
+  - _target_: src.metrics.roc_auc

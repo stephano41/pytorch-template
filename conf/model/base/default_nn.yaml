@@ -1,0 +1,41 @@
+# @package _global_
+arch:
+  _target_: src.trainer.neural_net.NeuralNet
+  model:
+  loss_fn:
+    _target_: torch.nn.NLLLoss
+  optimizer:
+    _target_: torch.optim.AdamW
+    lr: 0.0001
+    weight_decay: 0.01
+    amsgrad: true
+  metric_names: ${monitor}
+  n_gpu: ${n_gpu}
+  epochs: 100
+
+  batch_size: 128
+  standardise: True
+  weighted: True
+  n_iter_no_change: 10
+  stop_grace_period: 10
+  monitor: val/${monitor}
+  mode: ${mode}
+  validation_fraction: 0.1
+  _recursive_: False
+
+hp_search:
+  param_grid:
+    optimizer:
+      lr:
+        _target_: ray.tune.loguniform
+        _args_: [ 1e-5, 1e-3 ]
+      weight_decay:
+        _target_: ray.tune.loguniform
+        _args_: [ 1e-3, 1e-2 ]
+    batch_size:
+      _target_: ray.tune.choice
+      _args_: [ [ 128, 256 ] ]
+
+defaults:
+  - /trainer: torch_trainer
+  - _self_

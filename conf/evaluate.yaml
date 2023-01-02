@@ -1,16 +1,15 @@
-checkpoint_dir: ???
-checkpoint_name: ???
-
-metrics:
-  - _target_: src.metrics.accuracy
-  - _target_: src.metrics.top_k_acc
-
 defaults:
-  - data_loader: mnist_test
+  - pipeline: pt_tune
+  - hydra/run/dir: job_timestamp
+  - _self_
+  - optional local_env: env
   - override hydra/job_logging: custom
 
-  - _self_
+folder: ???
 
-hydra:
-  run:
-    dir: ${checkpoint_dir}/../../test-${now:%Y-%m-%d}-${now:%H-%M-%S}
+status: test
+output_root: ./outputs
+seed: 122
+name: null
+moniotr: f1_macro
+mode: max

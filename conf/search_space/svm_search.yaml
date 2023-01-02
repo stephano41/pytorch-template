@@ -1,3 +1,0 @@
-C: [100, 10, 1, 0.5]
-gamma: [scale, 1, 0.1, 0.01, 0.001, 0.0001]
-kernal: [rbf, linear, poly]

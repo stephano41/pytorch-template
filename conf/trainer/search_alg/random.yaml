@@ -1,0 +1,4 @@
+# @package hp_search
+search_alg:
+  _target_: ray.tune.search.basic_variant.BasicVariantGenerator
+  random_state: ${seed}

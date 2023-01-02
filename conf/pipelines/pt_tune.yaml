@@ -1,0 +1,16 @@
+# @package _global_
+pipeline:
+  _target_: src.pipelines.pt_tune
+
+bootstrap:
+  _target_: src.evaluation.bootstrap
+  num_cpu: ${cpu_per_task}
+  num_gpu: ${gpu_per_task}
+  method: .632+
+  alpha: 0.95
+  iters: 500
+  scoring: ${monitor}
+
+algorithms:
+  - /model/mnist_lenet.yaml
+  - /model/svm.yaml

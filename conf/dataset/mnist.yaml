@@ -1,0 +1,4 @@
+# @package dataset
+_target_: src.data_loader.fashion_mnist.get_dataset
+data_dir: ./data/
+training: True

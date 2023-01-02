@@ -1,0 +1,8 @@
+# @package hp_search
+scheduler:
+  _target_: ray.tune.schedulers.ASHAScheduler
+  max_t: ${hp_search.cv}
+  grace_period: 3
+  reduction_factor: 2
+  metric: test/${monitor}
+  mode: ${arch.mode}

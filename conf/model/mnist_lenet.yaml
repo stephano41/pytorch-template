@@ -1,16 +1,9 @@
 # @package _global_
 name: MnistLeNet
 arch:
-  _target_: src.models.MnistModel
-  num_classes: 10
-loss:
-  _target_: src.loss.nll_loss
-optimizer:
-  _target_: torch.optim.Adam
-  lr: 0.001
-  weight_decay: 0
-  amsgrad: true
-lr_scheduler:
-  _target_: torch.optim.lr_scheduler.StepLR
-  step_size: 50
-  gamma: 0.1
+  model:
+    _target_: src.models.MnistModel
+    num_classes: 10
+defaults:
+  - base: image_nn
+  - _self_

@@ -1,0 +1,7 @@
+# @package hp_search
+search_alg:
+  _target_: ray.tune.search.optuna.OptunaSearch
+  seed: ${seed}
+  metric: test/${monitor}
+  mode: ${arch.mode}
+#  points_to_evaluate: [{'arch/nc1': 32, 'arch/nc2': 64, 'arch/nc3': 128, 'arch/nc4': 256, 'optimizer/lr': 0.001, 'data_loader/batch_size': 64}]

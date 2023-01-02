@@ -1,0 +1,6 @@
+# @package hp_search
+_target_: sklearn.model_selection.GridSearchCV
+scoring: ${monitor}
+cv: 5
+verbose: 2
+n_jobs: ${n_cpu}

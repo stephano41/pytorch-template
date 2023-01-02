@@ -3,8 +3,10 @@ import torch.nn.functional as F
 
 
 class MnistModel(nn.Module):
-    def __init__(self, num_classes=10):
+    def __init__(self, sizes):
+
         super().__init__()
+        num_classes = sizes.output_size
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         self.conv2_drop = nn.Dropout2d()

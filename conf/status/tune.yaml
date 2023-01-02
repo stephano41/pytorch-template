@@ -1,9 +1,0 @@
-# @package _global_
-resume:
-status: tune
-n_gpu: 1
-n_cpu: 16
-num_workers: 4
-
-
-

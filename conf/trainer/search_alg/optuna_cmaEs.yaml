@@ -1,0 +1,10 @@
+# @package hp_search
+
+defaults:
+  - optuna.yaml
+  - _self_
+
+search_alg:
+  sampler:
+    _target_: optuna.samplers.CmaEsSampler
+    seed: ${seed}

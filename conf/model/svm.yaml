@@ -1,1 +1,24 @@
-_target_: sklearn.svm.SVC
+# @package _global_
+name: SVM
+arch:
+  _target_: sklearn.pipeline.make_pipeline
+  _args_:
+    - _target_: src.preprocessors.transforms.Flatten
+    - _target_: sklearn.preprocessing.StandardScaler
+    - _target_: sklearn.svm.SVC
+      C: 10
+      gamma: 0.0001
+      kernel: rbf
+      class_weight: balanced
+      max_iter: 5000
+
+
+hp_search:
+  param_grid:
+    svc__C: [ 100, 10, 1, 0.1 ]
+    svc__gamma: [ scale, auto ]
+    svc__kernel: [ rbf, sigmoid]
+
+defaults:
+  - base: default_sk
+  - _self_
